@@ -84,10 +84,10 @@ export default class AppView extends LitElement {
                 }, {
                     type: 'line',
                     label: 'Running',
-                    data: [],
+                    data: responseData.runningTradesChartData,
                     segment: {
                         borderColor: ctx => {
-                            if (ctx.p0.raw.isStart)
+                            if (ctx.p0.raw.start)
                                 return ctx.p0.raw.borderColor;
                             return 'rgba(0,0,0,0)';
                         }
