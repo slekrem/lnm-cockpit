@@ -20,7 +20,7 @@
         [Route("api/chart/data")]
         public async Task<IActionResult> ChartData()
         {
-            var from = DateTime.UtcNow.AddDays(-8).ToUnixTimeInMilliseconds();
+            var from = DateTime.UtcNow.AddDays(-1).ToUnixTimeInMilliseconds();
             var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
             try
             {
@@ -112,6 +112,80 @@
                     }
                 });
 
+                var runningTradesChartData = new List<TradeChartModel>();
+                var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(from, to);
+                runningTradesData.ToList().ForEach(x =>
+                {
+                    runningTradesChartData.Add(new TradeChartModel
+                    {
+                        X = (x.market_filled_ts - 7200000) < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts - 7200000,
+                        Y = x.price,
+                        Start = true,
+                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000"
+                    });
+                    runningTradesChartData.Add(new TradeChartModel
+                    {
+                        X = ohlcChartData.Last().X,
+                        Y = ohlcChartData.Last().C,
+                        Start = false,
+                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000"
+                    });
+
+                    if (x.liquidation > 0)
+                    {
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = (x.market_filled_ts - 7200000) < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts - 7200000,
+                            Y = x.liquidation,
+                            Start = true,
+                            BorderColor = "#ff0000"
+                        });
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = ohlcChartData.Last().X,
+                            Y = x.liquidation,
+                            Start = false,
+                            BorderColor = "#ff0000"
+                        });
+                    }
+
+                    if (x.stoploss > 0)
+                    {
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = (x.market_filled_ts - 7200000) < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts - 7200000,
+                            Y = x.stoploss,
+                            Start = true,
+                            BorderColor = "#ff0000"
+                        });
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = ohlcChartData.Last().X,
+                            Y = x.stoploss,
+                            Start = false,
+                            BorderColor = "#ff0000"
+                        });
+                    }
+
+                    if (x.takeprofit > 0)
+                    {
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = (x.market_filled_ts - 7200000) < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts - 7200000,
+                            Y = x.takeprofit,
+                            Start = true,
+                            BorderColor = "#00ff00"
+                        });
+                        runningTradesChartData.Add(new TradeChartModel
+                        {
+                            X = ohlcChartData.Last().X,
+                            Y = x.takeprofit,
+                            Start = false,
+                            BorderColor = "#00ff00"
+                        });
+                    }
+                });
+
                 var closedTradesChartData = new List<TradeChartModel>();
                 var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(from, to);
                 closedTradesData.ToList().ForEach(x =>
@@ -136,7 +210,8 @@
                 {
                     ohlcChartData,
                     openTradesChartData,
-                    closedTradesChartData
+                    closedTradesChartData,
+                    runningTradesChartData
                 });
 
             }
