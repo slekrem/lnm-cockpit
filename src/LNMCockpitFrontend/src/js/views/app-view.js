@@ -12,7 +12,8 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 export default class AppView extends LitElement {
     static properties = {
         _chart: Object,
-        _data: Object
+        _data: Object,
+        _table: String
     };
 
     _renderNavbar = () => html`
@@ -38,10 +39,7 @@ export default class AppView extends LitElement {
     `;
 
     _renderOpenTradesTableRow = (x) => {
-        const creation_ts = new Date(x.creation_ts);
-        console.log(creation_ts)
         return html`
-        ${console.log(x)}
         <tr>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
             <td>${x.type}</td>
@@ -73,7 +71,88 @@ export default class AppView extends LitElement {
     </div>
     `;
 
+    _renderClosedTradesTableRow = (x) => {
+        return html`
+        <tr>
+            <td>${new Date(x.creation_ts).toLocaleString()}</td>
+            <td>${x.type}</td>
+            <td>${x.price}</td>
+            <td>${x.liquidation}</td>
+            <td>${x.leverage}</td>
+            <td>${x.margin}</td>
+            <td>${x.stoploss}</td>
+            <td>${x.takeprofit}</td>
+        </tr>
+        `;
+    };
 
+    _renderClosedTradesTable = () => html`
+    <div class="table-responsive mt-5">
+        <table class="table table-sm table-striped">
+            <tr>
+                <th>Creation</th>
+                <th>Side</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
+                <th>Leverage</th>
+                <th>Margin</th>
+                <th>Stoploss</th>
+                <th>Takeprofit</th>
+            </tr>
+            ${this._data?.closedTradesData.map(this._renderClosedTradesTableRow)}
+        </table>
+    </div>
+    `;
+
+    _renderRunningTradesTableRow = (x) => {
+        return html`
+        <tr>
+            <td>${new Date(x.creation_ts).toLocaleString()}</td>
+            <td>${x.type}</td>
+            <td>${x.price}</td>
+            <td>
+                <button @click="${this._onHideTradeClick}" data-asd="${x}" class="btn btn-sm btn-link">
+                    <i class="bi bi-eye-fill"></i>
+                </button>
+                ${x.liquidation}
+            </td>
+            <td>${x.leverage}</td>
+            <td>${x.margin}</td>
+            <td>${x.stoploss}</td>
+            <td>${x.takeprofit}</td>
+        </tr>
+        `;
+    };
+
+    _renderRunningTradesTable = () => html`
+    <div class="table-responsive mt-5">
+        <table class="table table-sm table-striped">
+            <tr>
+                <th>Creation</th>
+                <th>Side</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
+                <th>Leverage</th>
+                <th>Margin</th>
+                <th>Stoploss</th>
+                <th>Takeprofit</th>
+            </tr>
+            ${this._data?.runningTradesData.map(this._renderRunningTradesTableRow)}
+        </table>
+    </div>
+    `;
+
+    _renderTradesTable = () => {
+        switch (this._table) {
+            case "running":
+                return this._renderRunningTradesTable();
+            case "closed":
+                return this._renderClosedTradesTable();
+            case "open":
+            default:
+                return this._renderOpenTradesTable();
+        }
+    };
 
     createRenderRoot = () => this;
     render = () => {
@@ -86,23 +165,23 @@ export default class AppView extends LitElement {
             <div class="card mt-5">
                 <canvas class="card-img-top"></canvas>
             </div>
-            <div class="card-body">
+            <div class="card-body mb-5">
                 <ul class="nav justify-content-center mt-5">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#">Open Trades</a>
+                        <a class="nav-link" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#">Running Trades</a>
+                        <a class="nav-link" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#">Closed Trades</a>
+                        <a class="nav-link" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
                     </li>
                 </ul>
-                ${this._renderOpenTradesTable()}
+                ${this._renderTradesTable()}
             </div>
         </div>
         `;
-    }
+    };
 
     firstUpdated = async () => {
         const response = await fetch('/api/chart/data');
@@ -187,6 +266,17 @@ export default class AppView extends LitElement {
         e.preventDefault();
         await fetch('/api/auth/logout', { method: 'POST' });
         location.reload();
+    };
+
+    _onTableClick = (e) => {
+        e.preventDefault();
+        const table = e.target.dataset.table;
+        this._table = table;
+    };
+
+    _onHideTradeClick = (e) => {
+        e.preventDefault();
+        console.log(e);
     };
 }
 
