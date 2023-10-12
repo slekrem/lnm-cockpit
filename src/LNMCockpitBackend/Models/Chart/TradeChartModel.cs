@@ -1,5 +1,8 @@
-﻿namespace LNMCockpit.Models.Chart
+﻿
+namespace LNMCockpit.Models.Chart
 {
+    using LNMCockpit.Models.LnMarkets;
+
     public class TradeChartModel
     {
         public long X { get; set; }
@@ -9,5 +12,7 @@
         public bool Start { get; set; }
 
         public string? BorderColor { get; set; }
+
+        public FuturesTradeModel? Data { get; set; }
     }
 }
