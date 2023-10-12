@@ -10,8 +10,9 @@ import 'chartjs-adapter-luxon';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
 export default class AppView extends LitElement {
-    static properties = { 
+    static properties = {
         _chart: Object,
+        _data: Object
     };
 
     _renderNavbar = () => html`
@@ -36,6 +37,44 @@ export default class AppView extends LitElement {
     </nav>
     `;
 
+    _renderOpenTradesTableRow = (x) => {
+        const creation_ts = new Date(x.creation_ts);
+        console.log(creation_ts)
+        return html`
+        ${console.log(x)}
+        <tr>
+            <td>${new Date(x.creation_ts).toLocaleString()}</td>
+            <td>${x.type}</td>
+            <td>${x.price}</td>
+            <td>${x.liquidation}</td>
+            <td>${x.leverage}</td>
+            <td>${x.margin}</td>
+            <td>${x.stoploss}</td>
+            <td>${x.takeprofit}</td>
+        </tr>
+        `;
+    };
+
+    _renderOpenTradesTable = () => html`
+    <div class="table-responsive mt-5">
+        <table class="table table-sm table-striped">
+            <tr>
+                <th>Creation</th>
+                <th>Side</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
+                <th>Leverage</th>
+                <th>Margin</th>
+                <th>Stoploss</th>
+                <th>Takeprofit</th>
+            </tr>
+            ${this._data?.openTradesData.map(this._renderOpenTradesTableRow)}
+        </table>
+    </div>
+    `;
+
+
+
     createRenderRoot = () => this;
     render = () => {
         return html`
@@ -47,19 +86,32 @@ export default class AppView extends LitElement {
             <div class="card mt-5">
                 <canvas class="card-img-top"></canvas>
             </div>
+            <div class="card-body">
+                <ul class="nav justify-content-center mt-5">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="#">Open Trades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="#">Running Trades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="#">Closed Trades</a>
+                    </li>
+                </ul>
+                ${this._renderOpenTradesTable()}
+            </div>
         </div>
         `;
     }
 
     firstUpdated = async () => {
         const response = await fetch('/api/chart/data');
-        if(!response.ok){
+        if (!response.ok) {
             location.reload();
             return;
         }
-        const responseData = await response.json();
+        this._data = await response.json();
 
-        const context = this.querySelector('canvas').getContext('2d');
         Chart.register(
             ...registerables,
             zoomPlugin,
@@ -68,8 +120,8 @@ export default class AppView extends LitElement {
             CandlestickElement,
             CandlestickController);
 
-        this._chart = new Chart(context, { 
-            type: 'ohlc', 
+        this._chart = new Chart(this.querySelector('canvas').getContext('2d'), {
+            type: 'ohlc',
             options: {
                 plugins: {
                     zoom: {
@@ -87,27 +139,27 @@ export default class AppView extends LitElement {
                         },
                     }
                 }
-            }, 
+            },
             data: {
                 datasets: [{
                     label: 'Bitcoin / U.S. Dollar',
-                    data: responseData.ohlcChartData
+                    data: this._data.ohlcChartData
                 }, {
                     type: 'line',
                     label: 'Open',
-                    data: responseData.openTradesChartData,
+                    data: this._data.openTradesChartData,
                     segment: {
                         borderColor: ctx => {
                             if (ctx.p0.raw.start)
                                 return ctx.p0.raw.borderColor;
                             return 'rgba(0,0,0,0)';
                         },
-    
+
                     }
                 }, {
                     type: 'line',
                     label: 'Running',
-                    data: responseData.runningTradesChartData,
+                    data: this._data.runningTradesChartData,
                     segment: {
                         borderColor: ctx => {
                             if (ctx.p0.raw.start)
@@ -118,7 +170,7 @@ export default class AppView extends LitElement {
                 }, {
                     type: 'line',
                     label: 'Closed',
-                    data: responseData.closedTradesChartData,
+                    data: this._data.closedTradesChartData,
                     segment: {
                         borderColor: ctx => {
                             if (ctx.p0.raw.start)
