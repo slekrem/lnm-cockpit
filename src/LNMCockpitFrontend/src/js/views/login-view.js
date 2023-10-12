@@ -69,7 +69,7 @@ export default class LoginView extends LitElement {
                 <input class="btn btn-primary w-100 py-2" type="submit" value="Sign in">
                 <p class="mt-3 mb-3 text-body-secondary text-center">
                     <a href="https://twitter.com/slekrem" target="_blank" class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
-                    &copy; ${new Date().getFullYear()} Stefan
+                        Made with ❤️‍🔥
                     </a>
                 </p>
             </form>
