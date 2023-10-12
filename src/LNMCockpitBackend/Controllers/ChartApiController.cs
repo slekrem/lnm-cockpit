@@ -20,7 +20,7 @@
         [Route("api/chart/data")]
         public async Task<IActionResult> ChartData()
         {
-            var from = DateTime.UtcNow.AddDays(-1).ToUnixTimeInMilliseconds();
+            var from = DateTime.UtcNow.AddDays(-8).ToUnixTimeInMilliseconds();
             var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
             try
             {
@@ -57,7 +57,7 @@
                         BorderColor = x.type == "l" ? "#00ff00" : "ff0000"
                     });
 
-                    if(x.liquidation > 0)
+                    if (x.liquidation > 0)
                     {
                         openTradesChartData.Add(new TradeChartModel
                         {
@@ -112,10 +112,31 @@
                     }
                 });
 
+                var closedTradesChartData = new List<TradeChartModel>();
+                var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(from, to);
+                closedTradesData.ToList().ForEach(x =>
+                {
+                    closedTradesChartData.Add(new TradeChartModel
+                    {
+                        X = x.creation_ts,
+                        Y = x.price,
+                        Start = true,
+                        BorderColor = x.pl > 0 ? "#00ff00" : "ff0000"
+                    });
+                    closedTradesChartData.Add(new TradeChartModel
+                    {
+                        X = x.closed_ts,
+                        Y = x.exit_price,
+                        Start = false,
+                        BorderColor = x.pl > 0 ? "#00ff00" : "ff0000"
+                    });
+                });
+
                 return Ok(new
                 {
                     ohlcChartData,
-                    openTradesChartData
+                    openTradesChartData,
+                    closedTradesChartData
                 });
 
             }
