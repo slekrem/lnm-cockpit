@@ -58,18 +58,18 @@ export default class AppView extends LitElement {
         const data = {
             datasets: [{
                 label: 'Bitcoin / U.S. Dollar',
-                data: responseData.ohlcData
+                data: responseData.ohlcChartData
             }, {
                 type: 'line',
                 label: 'Open',
-                data: [],
-                //borderColor: 'rgb(255,0,0)',
+                data: responseData.openTradesChartData,
                 segment: {
                     borderColor: ctx => {
-                        if (ctx.p0.raw.isStart)
+                        if (ctx.p0.raw.start)
                             return ctx.p0.raw.borderColor;
-                        return 'rgba(75,192,192,0)';
-                    }
+                        return 'rgba(0,0,0,0)';
+                    },
+
                 }
             }, {
                 type: 'line',
