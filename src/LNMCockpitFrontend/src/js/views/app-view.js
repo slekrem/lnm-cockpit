@@ -37,67 +37,6 @@ export default class AppView extends LitElement {
         const responseData = await response.json();
 
         const context = this.querySelector('canvas').getContext('2d');
-        const options = {
-            plugins: {
-                zoom: {
-                    zoom: {
-                        wheel: {
-                            enabled: true,
-                        },
-                        pinch: {
-                            enabled: false
-                        },
-                        mode: 'xy',
-                    },
-                    pan: {
-                        enabled: true
-                    },
-                }
-            }
-        };
-        const data = {
-            datasets: [{
-                label: 'Bitcoin / U.S. Dollar',
-                data: responseData.ohlcChartData
-            }, {
-                type: 'line',
-                label: 'Open',
-                data: responseData.openTradesChartData,
-                segment: {
-                    borderColor: ctx => {
-                        if (ctx.p0.raw.start)
-                            return ctx.p0.raw.borderColor;
-                        return 'rgba(0,0,0,0)';
-                    },
-
-                }
-            }, {
-                type: 'line',
-                label: 'Running',
-                data: [],
-                //borderColor: 'rgb(255,0,0)',
-                segment: {
-                    borderColor: ctx => {
-                        if (ctx.p0.raw.isStart)
-                            return ctx.p0.raw.borderColor;
-                        return 'rgba(75,192,192,0)';
-                    }
-                }
-            }, {
-                type: 'line',
-                label: 'Closed',
-                data: responseData.closedTradesChartData,
-                segment: {
-                    borderColor: ctx => {
-                        if (ctx.p0.raw.start)
-                            return ctx.p0.raw.borderColor;
-                        return 'rgba(0,0,0,0)';
-                    }
-                }
-            }]
-        };
-        const config = { type: 'ohlc', options, data };
-
         Chart.register(
             ...registerables,
             zoomPlugin,
@@ -106,7 +45,67 @@ export default class AppView extends LitElement {
             CandlestickElement,
             CandlestickController);
 
-        this._chart = new Chart(context, config);
+        this._chart = new Chart(context, { 
+            type: 'ohlc', 
+            options: {
+                plugins: {
+                    zoom: {
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: false
+                            },
+                            mode: 'xy',
+                        },
+                        pan: {
+                            enabled: true
+                        },
+                    }
+                }
+            }, 
+            data: {
+                datasets: [{
+                    label: 'Bitcoin / U.S. Dollar',
+                    data: responseData.ohlcChartData
+                }, {
+                    type: 'line',
+                    label: 'Open',
+                    data: responseData.openTradesChartData,
+                    segment: {
+                        borderColor: ctx => {
+                            if (ctx.p0.raw.start)
+                                return ctx.p0.raw.borderColor;
+                            return 'rgba(0,0,0,0)';
+                        },
+    
+                    }
+                }, {
+                    type: 'line',
+                    label: 'Running',
+                    data: [],
+                    segment: {
+                        borderColor: ctx => {
+                            if (ctx.p0.raw.isStart)
+                                return ctx.p0.raw.borderColor;
+                            return 'rgba(0,0,0,0)';
+                        }
+                    }
+                }, {
+                    type: 'line',
+                    label: 'Closed',
+                    data: responseData.closedTradesChartData,
+                    segment: {
+                        borderColor: ctx => {
+                            if (ctx.p0.raw.start)
+                                return ctx.p0.raw.borderColor;
+                            return 'rgba(0,0,0,0)';
+                        }
+                    }
+                }]
+            }
+        });
     };
 }
 
