@@ -1,6 +1,7 @@
 import { html, LitElement } from 'lit';
 
 import './views/login-view';
+import './views/app-view';
 
 export default class AppShell extends LitElement {
     static properties = {
@@ -11,10 +12,11 @@ export default class AppShell extends LitElement {
     render = () => {
         switch (this._view) {
             case 'app':
-                return html`app`;
+                return html`<app-view></app-view>`;
             case 'login':
-            default:
                 return html`<login-view></login-view>`;
+            default:
+                return html``;
         }
     }
 
