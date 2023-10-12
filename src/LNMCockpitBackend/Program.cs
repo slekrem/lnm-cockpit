@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<ILnMarketsService, LnMarketsService>();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(x =>
