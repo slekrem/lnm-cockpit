@@ -11,6 +11,7 @@ export default class LoginView extends LitElement {
         }
 
         .form-signin {
+            max-width: 350px;
             padding: 1rem;
         }
 
@@ -43,24 +44,28 @@ export default class LoginView extends LitElement {
     <div class="d-flex align-items-center py-4 bg-body-tertiary vh-100">
         <main class="form-signin w-auto m-auto">
             <form @submit="${this._onFormSubmit}">
-                <img class="mb-4" src="${logo}" alt="" width="250" height="250">
+                <div class="text-center">
+                    <img class="mb-4" src="${logo}" alt="" width="250" height="250">
+                </div>
                 <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
                 <div class="form-floating">
-                    <input type="password" class="form-control secret" name="secret" placeholder="Secret">
+                    <input type="password" class="form-control secret" name="secret" placeholder="Secret" required>
                     <label>Secret</label>
                 </div>
                 <div class="form-floating">
-                    <input type="password" class="form-control key" name="key" placeholder="Key">
+                    <input type="password" class="form-control key" name="key" placeholder="Key" required>
                     <label>Key</label>
                 </div>
                 <div class="form-floating mb-2">
-                    <input type="password" class="form-control passphrase" name="passphrase" placeholder="Passphrase">
+                    <input type="password" class="form-control passphrase" name="passphrase" placeholder="Passphrase" required>
                     <label>Passphrase</label>
                 </div>
-                <!-- <div class="form-check text-start my-3">
-                    <input class="form-check-input" type="checkbox" value="remember-me" id="flexCheckDefault">
-                    <label class="form-check-label" for="flexCheckDefault">Remember me</label>
-                </div> -->
+                <div class="form-check text-start my-3">
+                    <input class="form-check-input" type="checkbox" required>
+                    <label class="form-check-label">
+                        I know it's only an Alpha version, and I'm using it at my own risk. 🚀🔥
+                    </label>
+                </div>
                 <input class="btn btn-primary w-100 py-2" type="submit" value="Sign in">
                 <p class="mt-3 mb-3 text-body-secondary text-center">
                     <a href="https://twitter.com/slekrem" target="_blank" class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
