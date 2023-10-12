@@ -188,7 +188,7 @@
 
                 var closedTradesChartData = new List<TradeChartModel>();
                 var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(from, to);
-                closedTradesData.ToList().ForEach(x =>
+                closedTradesData.Where(x => !x.canceled).ToList().ForEach(x =>
                 {
                     closedTradesChartData.Add(new TradeChartModel
                     {
