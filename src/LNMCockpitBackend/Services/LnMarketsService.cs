@@ -39,6 +39,18 @@
             return data.ToList();
         }
 
+        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetClosedTradesAsync(long from, long to, int limit = int.MaxValue)
+        {
+            var method = "GET";
+            var path = "/v2/futures";
+            var @params = $"type=closed&from={from}&to={to}&limit={limit}";
+            var timestamp = GetTimestamp();
+
+            using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
+            var data = await client.GetFromJsonAsync<IEnumerable<FuturesTradeModel>>($"{_lnMarketsEndpoint}{path}?{@params}") ?? new List<FuturesTradeModel>();
+            return data.ToList();
+        }
+
         private string GetSignature(string payload)
         {
             var secret = _httpContextAccessor.HttpContext?.User.Claims
