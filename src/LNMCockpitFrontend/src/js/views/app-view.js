@@ -86,13 +86,12 @@ export default class AppView extends LitElement {
             }, {
                 type: 'line',
                 label: 'Closed',
-                data: [],
-                //borderColor: 'rgb(255,0,0)',
+                data: responseData.closedTradesChartData,
                 segment: {
                     borderColor: ctx => {
-                        if (ctx.p0.raw.isStart)
+                        if (ctx.p0.raw.start)
                             return ctx.p0.raw.borderColor;
-                        return 'rgba(75,192,192,0)';
+                        return 'rgba(0,0,0,0)';
                     }
                 }
             }]
