@@ -42,10 +42,17 @@ export default class AppView extends LitElement {
     _renderOpenTradesTableRow = (x, i) => {
         const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-fill"></i>` : html`<i class="bi bi-eye-slash-fill"></i>`;
         const getValue = (hide, value) => hide ? html`*****` : html`${value}`;
+
+        var offset = new Date(Date.now() - new Date(x.creation_ts));
+        const hh = Math.floor(offset / (1000 * 60 * 60));
+        const mm = Math.floor((offset % (1000 * 60 * 60)) / (1000 * 60));
+        const ss = Math.floor((offset % (1000 * 60)) / 1000);
+
         return html`
         <tr>
             <td>${i + 1}</td>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
+            <td>${hh}:${mm}:${ss}</td>
             <td>
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.quantityHide)}
@@ -104,6 +111,7 @@ export default class AppView extends LitElement {
             <tr>
                 <th>#</th>
                 <th>Creation</th>
+                <th>Open Duration</th>
                 <th>Quantity</th>
                 <th>Side</th>
                 <th>Leverage</th>
@@ -118,22 +126,75 @@ export default class AppView extends LitElement {
     </div>
     `;
 
-    _renderClosedTradesTableRow = (x) => {
+    _renderClosedTradesTableRow = (x, i) => {
+        const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-fill"></i>` : html`<i class="bi bi-eye-slash-fill"></i>`;
+        const getValue = (hide, value) => hide ? html`*****` : html`${value}`;
+
+
+        var offset = new Date(new Date(x.closed_ts) - new Date(x.market_filled_ts));
+        const hh = Math.floor(offset / (1000 * 60 * 60));
+        const mm = Math.floor((offset % (1000 * 60 * 60)) / (1000 * 60));
+        const ss = Math.floor((offset % (1000 * 60)) / 1000);
+
         return html`
         <tr>
-            <td>${new Date(x.creation_ts).toLocaleString()}</td>
-            <td>${x.type}</td>
+            <td>${i + 1}</td>
+            <td>${new Date(x.market_filled_ts).toLocaleString()}</td>
+            <td>${hh}:${mm}:${ss}</td>
             <td>
-                <button @click="${this._onHideClick}" data-tradeId="${x}" class="btn btn-sm btn-link">
-                    <i class="bi bi-eye-fill"></i>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.quantityHide)}
                 </button>
-                ${x.price}
+                ${getValue(x.quantityHide, x.quantity)}
             </td>
-            <td>${x.liquidation}</td>
-            <td>${x.leverage}</td>
-            <td>${x.margin}</td>
-            <td>${x.stoploss}</td>
-            <td>${x.takeprofit}</td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.sideHide)}
+                </button>
+                ${getValue(x.sideHide, x.side)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.leverageHide)}
+                </button>
+                ${getValue(x.leverageHide, x.leverage)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.marginHide)}
+                </button>
+                ${getValue(x.marginHide, x.margin)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.priceHide)}
+                </button>
+                ${getValue(x.priceHide, x.price)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.liquidationHide)}
+                </button>
+                ${getValue(x.liquidationHide, x.liquidation)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.stoplossHide)}
+                </button>
+                ${getValue(x.stoplossHide, x.stoploss)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.takeprofitHide)}
+                </button>
+                ${getValue(x.takeprofitHide, x.takeprofit)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="pl" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.plHide)}
+                </button>
+                ${getValue(x.plHide, x.pl)}
+            </td>
         </tr>
         `;
     };
@@ -142,14 +203,18 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
-                <th>Creation</th>
+                <th>#</th>
+                <th>Market Filled</th>
+                <th>Trade Duration</th>
+                <th>Quantity</th>
                 <th>Side</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
                 <th>Leverage</th>
                 <th>Margin</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
                 <th>Stoploss</th>
                 <th>Takeprofit</th>
+                <th>PL</th>
             </tr>
             ${this._data?.closedTradesData.map(this._renderClosedTradesTableRow)}
         </table>
@@ -157,23 +222,73 @@ export default class AppView extends LitElement {
     `;
 
     _renderRunningTradesTableRow = (x, i) => {
+        const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-fill"></i>` : html`<i class="bi bi-eye-slash-fill"></i>`;
+        const getValue = (hide, value) => hide ? html`*****` : html`${value}`;
+
+        var offset = new Date(Date.now() - new Date(x.market_filled_ts));
+        const hh = Math.floor(offset / (1000 * 60 * 60));
+        const mm = Math.floor((offset % (1000 * 60 * 60)) / (1000 * 60));
+        const ss = Math.floor((offset % (1000 * 60)) / 1000);
+
         return html`
         <tr>
             <td>${i + 1}</td>
-            <td>${new Date(x.creation_ts).toLocaleString()}</td>
-            <td>${x.quantity}</td>
-            <td>${x.side}</td>
-            <td>${x.price}</td>
+            <td>${new Date(x.market_filled_ts).toLocaleString()}</td>
+            <td>${hh}:${mm}:${ss}</td>
             <td>
-                <button @click="${this._onHideClick}" data-tradeId="${x}" class="btn btn-sm btn-link">
-                    <i class="bi bi-eye-fill"></i>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.quantityHide)}
                 </button>
-                ${x.liquidation}
+                ${getValue(x.quantityHide, x.quantity)}
             </td>
-            <td>${x.leverage}</td>
-            <td>${x.margin}</td>
-            <td>${x.stoploss}</td>
-            <td>${x.takeprofit}</td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.sideHide)}
+                </button>
+                ${getValue(x.sideHide, x.side)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.leverageHide)}
+                </button>
+                ${getValue(x.leverageHide, x.leverage)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.marginHide)}
+                </button>
+                ${getValue(x.marginHide, x.margin)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.priceHide)}
+                </button>
+                ${getValue(x.priceHide, x.price)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.liquidationHide)}
+                </button>
+                ${getValue(x.liquidationHide, x.liquidation)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.stoplossHide)}
+                </button>
+                ${getValue(x.stoplossHide, x.stoploss)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.takeprofitHide)}
+                </button>
+                ${getValue(x.takeprofitHide, x.takeprofit)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="pl" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.plHide)}
+                </button>
+                ${getValue(x.plHide, x.pl)}
+            </td>
         </tr>
         `;
     };
@@ -183,15 +298,17 @@ export default class AppView extends LitElement {
         <table class="table table-sm table-striped">
             <tr>
                 <th>#</th>
-                <th>Creation</th>
+                <th>Market Filled</th>
+                <th>Trade Duration</th>
                 <th>Quantity</th>
                 <th>Side</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
                 <th>Leverage</th>
                 <th>Margin</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
                 <th>Stoploss</th>
                 <th>Takeprofit</th>
+                <th>PL</th>
             </tr>
             ${this._data?.runningTradesData.map(this._renderRunningTradesTableRow)}
         </table>
@@ -422,8 +539,10 @@ export default class AppView extends LitElement {
                 this._hideOpenTradeData(tradeId, name);
                 break;
             case 'running':
+                this._hideRunningTradeData(tradeId, name);
                 break;
             case 'closed':
+                this._hideClosedTradeData(tradeId, name);
                 break;
             default:
                 break;
@@ -468,19 +587,99 @@ export default class AppView extends LitElement {
             default:
                 break;
         }
-
         return;
-
-
-
         const asd = this._ohlcChart.config.data.datasets
             .find(x => x.label === 'Open').data
             .find(x => x.id === tradeId && x.start);
-
-
         console.log(this._ohlcChart.config.data.datasets.find(x => x.label === 'Open').data.find(x => x.id === tradeId && x.start).start = false);
         this._ohlcChart.update();
 
+    };
+
+    _hideRunningTradeData = (tradeId, name) => {
+        switch (name) {
+            case 'quantity':
+                const quantityHide = this._data.runningTradesData.find(x => x.id === tradeId).quantityHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).quantityHide = !quantityHide;
+                break;
+            case 'side':
+                const sideHide = this._data.runningTradesData.find(x => x.id === tradeId).sideHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).sideHide = !sideHide;
+                break;
+            case 'price':
+                const priceHide = this._data.runningTradesData.find(x => x.id === tradeId).priceHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                break;
+            case 'liquidation':
+                const liquidationHide = this._data.runningTradesData.find(x => x.id === tradeId).liquidationHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).liquidationHide = !liquidationHide;
+                break;
+            case 'leverage':
+                const leverageHide = this._data.runningTradesData.find(x => x.id === tradeId).leverageHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).leverageHide = !leverageHide;
+                break;
+            case 'margin':
+                const marginHide = this._data.runningTradesData.find(x => x.id === tradeId).marginHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).marginHide = !marginHide;
+                break;
+            case 'stoploss':
+                const stoplossHide = this._data.runningTradesData.find(x => x.id === tradeId).stoplossHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).stoplossHide = !stoplossHide;
+                break;
+            case 'takeprofit':
+                const takeprofitHide = this._data.runningTradesData.find(x => x.id === tradeId).takeprofitHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).takeprofitHide = !takeprofitHide;
+                break;
+            case 'pl':
+                const plHide = this._data.runningTradesData.find(x => x.id === tradeId).plHide;
+                this._data.runningTradesData.find(x => x.id === tradeId).plHide = !plHide;
+                break;
+            default:
+                break;
+        }
+    };
+
+    _hideClosedTradeData = (tradeId, name) => {
+        switch (name) {
+            case 'quantity':
+                const quantityHide = this._data.closedTradesData.find(x => x.id === tradeId).quantityHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).quantityHide = !quantityHide;
+                break;
+            case 'side':
+                const sideHide = this._data.closedTradesData.find(x => x.id === tradeId).sideHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).sideHide = !sideHide;
+                break;
+            case 'price':
+                const priceHide = this._data.closedTradesData.find(x => x.id === tradeId).priceHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                break;
+            case 'liquidation':
+                const liquidationHide = this._data.closedTradesData.find(x => x.id === tradeId).liquidationHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).liquidationHide = !liquidationHide;
+                break;
+            case 'leverage':
+                const leverageHide = this._data.closedTradesData.find(x => x.id === tradeId).leverageHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).leverageHide = !leverageHide;
+                break;
+            case 'margin':
+                const marginHide = this._data.closedTradesData.find(x => x.id === tradeId).marginHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).marginHide = !marginHide;
+                break;
+            case 'stoploss':
+                const stoplossHide = this._data.closedTradesData.find(x => x.id === tradeId).stoplossHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).stoplossHide = !stoplossHide;
+                break;
+            case 'takeprofit':
+                const takeprofitHide = this._data.closedTradesData.find(x => x.id === tradeId).takeprofitHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).takeprofitHide = !takeprofitHide;
+                break;
+            case 'pl':
+                const plHide = this._data.closedTradesData.find(x => x.id === tradeId).plHide;
+                this._data.closedTradesData.find(x => x.id === tradeId).plHide = !plHide;
+                break;
+            default:
+                break;
+        }
     };
 }
 
