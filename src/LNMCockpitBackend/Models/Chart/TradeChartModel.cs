@@ -5,6 +5,8 @@ namespace LNMCockpit.Models.Chart
 
     public class TradeChartModel
     {
+        public string? Id { get; set; }
+
         public long X { get; set; }
 
         public decimal Y { get; set; }
