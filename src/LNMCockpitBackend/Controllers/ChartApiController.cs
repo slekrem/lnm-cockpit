@@ -48,7 +48,7 @@
                         X = x.creation_ts,
                         Y = x.price,
                         Start = true,
-                        BorderColor = x.type == "l" ? "#00ff00" : "ff0000",
+                        BorderColor = x.type == "l" ? "#00ff00" : "#ff0000",
                         Data = x,
                         Type = "price"
                     });
@@ -58,7 +58,7 @@
                         X = ohlcChartData.Last().X,
                         Y = x.price,
                         Start = false,
-                        BorderColor = x.type == "l" ? "#00ff00" : "ff0000",
+                        BorderColor = x.type == "l" ? "#00ff00" : "#ff0000",
                         Data = x,
                         Type = "price"
                     });
