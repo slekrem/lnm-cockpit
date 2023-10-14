@@ -15,6 +15,8 @@ namespace LNMCockpit.Models.Chart
 
         public string? BorderColor { get; set; }
 
+        public string? Type { get; set; }
+
         public FuturesTradeModel? Data { get; set; }
     }
 }
