@@ -166,7 +166,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts - 7200000,
+                            X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts,
                             Y = x.liquidation,
                             Start = true,
                             BorderColor = "#ff0000",
