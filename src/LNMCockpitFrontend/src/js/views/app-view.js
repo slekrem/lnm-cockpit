@@ -40,12 +40,18 @@ export default class AppView extends LitElement {
     `;
 
     _renderOpenTradesTableRow = (x, i) => {
-        const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-slash-fill"></i>` : html`<i class="bi bi-eye-fill"></i>`;
+        const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-fill"></i>` : html`<i class="bi bi-eye-slash-fill"></i>`;
         const getValue = (hide, value) => hide ? html`*****` : html`${value}`;
         return html`
         <tr>
             <td>${i + 1}</td>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.quantityHide)}
+                </button>
+                ${getValue(x.quantityHide, x.quantity)}
+            </td>
             <td>
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.sideHide)}
@@ -98,6 +104,7 @@ export default class AppView extends LitElement {
             <tr>
                 <th>#</th>
                 <th>Creation</th>
+                <th>Quantity</th>
                 <th>Side</th>
                 <th>Entry Price</th>
                 <th>Liquidation Price</th>
@@ -173,6 +180,7 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
+                <th>#</th>
                 <th>Creation</th>
                 <th>Side</th>
                 <th>Entry Price</th>
@@ -422,6 +430,10 @@ export default class AppView extends LitElement {
 
     _hideOpenTradeData = (tradeId, name) => {
         switch (name) {
+            case 'quantity':
+                const quantityHide = this._data.openTradesData.find(x => x.id === tradeId).quantityHide;
+                this._data.openTradesData.find(x => x.id === tradeId).quantityHide = !quantityHide;
+                break;
             case 'side':
                 const sideHide = this._data.openTradesData.find(x => x.id === tradeId).sideHide;
                 this._data.openTradesData.find(x => x.id === tradeId).sideHide = !sideHide;
@@ -467,8 +479,6 @@ export default class AppView extends LitElement {
         this._ohlcChart.update();
 
     };
-
-
 }
 
 customElements.define('app-view', AppView);
