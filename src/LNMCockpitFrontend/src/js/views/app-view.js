@@ -432,8 +432,11 @@ export default class AppView extends LitElement {
                     type: 'line',
                     label: 'Open',
                     data: this._data.openTradesChartData,
+                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
+                    pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
                         borderColor: ctx => {
+                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
                             if (ctx.p0.raw.start)
                                 return ctx.p0.raw.borderColor;
                             return 'rgba(0,0,0,0)';
@@ -444,19 +447,25 @@ export default class AppView extends LitElement {
                     type: 'line',
                     label: 'Running',
                     data: this._data.runningTradesChartData,
+                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
+                    pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
                         borderColor: ctx => {
+                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
                             if (ctx.p0.raw.start)
                                 return ctx.p0.raw.borderColor;
                             return 'rgba(0,0,0,0)';
-                        }
+                        },
                     }
                 }, {
                     type: 'line',
                     label: 'Closed',
                     data: this._data.closedTradesChartData,
+                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
+                    pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
                         borderColor: ctx => {
+                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
                             if (ctx.p0.raw.start)
                                 return ctx.p0.raw.borderColor;
                             return 'rgba(0,0,0,0)';
@@ -548,6 +557,7 @@ export default class AppView extends LitElement {
                 break;
         }
         this.requestUpdate();
+        this._ohlcChart.update();
     };
 
     _hideOpenTradeData = (tradeId, name) => {
@@ -563,14 +573,23 @@ export default class AppView extends LitElement {
             case 'price':
                 const priceHide = this._data.openTradesData.find(x => x.id === tradeId).priceHide;
                 this._data.openTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Open').data
+                    .find(x => x.id === tradeId && x.type === 'price').hide = !priceHide;
                 break;
             case 'liquidation':
                 const liquidationHide = this._data.openTradesData.find(x => x.id === tradeId).liquidationHide;
                 this._data.openTradesData.find(x => x.id === tradeId).liquidationHide = !liquidationHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Open').data
+                    .find(x => x.id === tradeId && x.type === 'liquidation').hide = !liquidationHide;
                 break;
             case 'leverage':
                 const leverageHide = this._data.openTradesData.find(x => x.id === tradeId).leverageHide;
                 this._data.openTradesData.find(x => x.id === tradeId).leverageHide = !leverageHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Open').data
+                    .find(x => x.id === tradeId && x.type === 'liquidation').hide = !leverageHide;
                 break;
             case 'margin':
                 const marginHide = this._data.openTradesData.find(x => x.id === tradeId).marginHide;
@@ -579,21 +598,24 @@ export default class AppView extends LitElement {
             case 'stoploss':
                 const stoplossHide = this._data.openTradesData.find(x => x.id === tradeId).stoplossHide;
                 this._data.openTradesData.find(x => x.id === tradeId).stoplossHide = !stoplossHide;
+                try {
+                    this._ohlcChart.config.data.datasets
+                        .find(x => x.label === 'Open').data
+                        .find(x => x.id === tradeId && x.type === 'stoploss').hide = !stoplossHide;
+                } catch { }
                 break;
             case 'takeprofit':
                 const takeprofitHide = this._data.openTradesData.find(x => x.id === tradeId).takeprofitHide;
                 this._data.openTradesData.find(x => x.id === tradeId).takeprofitHide = !takeprofitHide;
+                try {
+                    this._ohlcChart.config.data.datasets
+                        .find(x => x.label === 'Open').data
+                        .find(x => x.id === tradeId && x.type === 'takeprofit').hide = !takeprofitHide;
+                } catch { }
                 break;
             default:
                 break;
         }
-        return;
-        const asd = this._ohlcChart.config.data.datasets
-            .find(x => x.label === 'Open').data
-            .find(x => x.id === tradeId && x.start);
-        console.log(this._ohlcChart.config.data.datasets.find(x => x.label === 'Open').data.find(x => x.id === tradeId && x.start).start = false);
-        this._ohlcChart.update();
-
     };
 
     _hideRunningTradeData = (tradeId, name) => {
@@ -609,10 +631,16 @@ export default class AppView extends LitElement {
             case 'price':
                 const priceHide = this._data.runningTradesData.find(x => x.id === tradeId).priceHide;
                 this._data.runningTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Running').data
+                    .find(x => x.id === tradeId && x.type === 'price').hide = !priceHide;
                 break;
             case 'liquidation':
                 const liquidationHide = this._data.runningTradesData.find(x => x.id === tradeId).liquidationHide;
                 this._data.runningTradesData.find(x => x.id === tradeId).liquidationHide = !liquidationHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Running').data
+                    .find(x => x.id === tradeId && x.type === 'liquidation').hide = !liquidationHide;
                 break;
             case 'leverage':
                 const leverageHide = this._data.runningTradesData.find(x => x.id === tradeId).leverageHide;
@@ -625,10 +653,20 @@ export default class AppView extends LitElement {
             case 'stoploss':
                 const stoplossHide = this._data.runningTradesData.find(x => x.id === tradeId).stoplossHide;
                 this._data.runningTradesData.find(x => x.id === tradeId).stoplossHide = !stoplossHide;
+                try {
+                    this._ohlcChart.config.data.datasets
+                        .find(x => x.label === 'Running').data
+                        .find(x => x.id === tradeId && x.type === 'stoploss').hide = !stoplossHide;
+                } catch { }
                 break;
             case 'takeprofit':
                 const takeprofitHide = this._data.runningTradesData.find(x => x.id === tradeId).takeprofitHide;
                 this._data.runningTradesData.find(x => x.id === tradeId).takeprofitHide = !takeprofitHide;
+                try {
+                    this._ohlcChart.config.data.datasets
+                        .find(x => x.label === 'Running').data
+                        .find(x => x.id === tradeId && x.type === 'takeprofit').hide = !takeprofitHide;
+                } catch { }
                 break;
             case 'pl':
                 const plHide = this._data.runningTradesData.find(x => x.id === tradeId).plHide;
@@ -652,6 +690,9 @@ export default class AppView extends LitElement {
             case 'price':
                 const priceHide = this._data.closedTradesData.find(x => x.id === tradeId).priceHide;
                 this._data.closedTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                this._ohlcChart.config.data.datasets
+                    .find(x => x.label === 'Closed').data
+                    .find(x => x.id === tradeId && x.type === 'price').hide = !priceHide;
                 break;
             case 'liquidation':
                 const liquidationHide = this._data.closedTradesData.find(x => x.id === tradeId).liquidationHide;
