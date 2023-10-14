@@ -11,7 +11,8 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 
 export default class AppView extends LitElement {
     static properties = {
-        _chart: Object,
+        _ohlcChart: Object,
+        _barCart: Object,
         _data: Object,
         _table: String
     };
@@ -38,17 +39,55 @@ export default class AppView extends LitElement {
     </nav>
     `;
 
-    _renderOpenTradesTableRow = (x) => {
+    _renderOpenTradesTableRow = (x, i) => {
+        const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-slash-fill"></i>` : html`<i class="bi bi-eye-fill"></i>`;
+        const getValue = (hide, value) => hide ? html`*****` : html`${value}`;
         return html`
         <tr>
+            <td>${i + 1}</td>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
-            <td>${x.type}</td>
-            <td>${x.price}</td>
-            <td>${x.liquidation}</td>
-            <td>${x.leverage}</td>
-            <td>${x.margin}</td>
-            <td>${x.stoploss}</td>
-            <td>${x.takeprofit}</td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="type" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.typeHide)}
+                </button>
+                ${getValue(x.typeHide, x.type)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.priceHide)}
+                </button>
+                ${getValue(x.priceHide, x.price)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.liquidationHide)}
+                </button>
+                ${getValue(x.liquidationHide, x.liquidation)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.leverageHide)}
+                </button>
+                ${getValue(x.leverageHide, x.leverage)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.marginHide)}
+                </button>
+                ${getValue(x.marginHide, x.margin)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.stoplossHide)}
+                </button>
+                ${getValue(x.stoplossHide, x.stoploss)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.takeprofitHide)}
+                </button>
+                ${getValue(x.takeprofitHide, x.takeprofit)}
+            </td>
         </tr>
         `;
     };
@@ -57,6 +96,7 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
+                <th>#</th>
                 <th>Creation</th>
                 <th>Side</th>
                 <th>Entry Price</th>
@@ -76,7 +116,12 @@ export default class AppView extends LitElement {
         <tr>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
             <td>${x.type}</td>
-            <td>${x.price}</td>
+            <td>
+                <button @click="${this._onHideClick}" data-tradeId="${x}" class="btn btn-sm btn-link">
+                    <i class="bi bi-eye-fill"></i>
+                </button>
+                ${x.price}
+            </td>
             <td>${x.liquidation}</td>
             <td>${x.leverage}</td>
             <td>${x.margin}</td>
@@ -111,7 +156,7 @@ export default class AppView extends LitElement {
             <td>${x.type}</td>
             <td>${x.price}</td>
             <td>
-                <button @click="${this._onHideTradeClick}" data-asd="${x}" class="btn btn-sm btn-link">
+                <button @click="${this._onHideClick}" data-tradeId="${x}" class="btn btn-sm btn-link">
                     <i class="bi bi-eye-fill"></i>
                 </button>
                 ${x.liquidation}
@@ -162,23 +207,32 @@ export default class AppView extends LitElement {
             <div class="text-center">
                 <h1 class="display-1">My LNM Cockpit</h1>                
             </div>
-            <div class="card mt-5">
-                <canvas class="card-img-top"></canvas>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mt-5">
+                        <canvas class="card-img-top ohlc"></canvas>
+                    </div>
+                </div>
+                <div class="col-12 d-none">
+                    <div class="card mt-5">
+                        <div style="height: ${this._ohlcChart?.height}px">
+                            <canvas class="card-img-top bar"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body mb-5">
-                <ul class="nav justify-content-center mt-5">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
-                    </li>
-                </ul>
-                ${this._renderTradesTable()}
-            </div>
+            <ul class="nav justify-content-center mt-5">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
+                </li>
+            </ul>
+            ${this._renderTradesTable()}
         </div>
         `;
     };
@@ -199,7 +253,12 @@ export default class AppView extends LitElement {
             CandlestickElement,
             CandlestickController);
 
-        this._chart = new Chart(this.querySelector('canvas').getContext('2d'), {
+        this._initOhlcChart();
+        this._initBarChart();
+    };
+
+    _initOhlcChart = () => {
+        this._ohlcChart = new Chart(this.querySelector('canvas.ohlc').getContext('2d'), {
             type: 'ohlc',
             options: {
                 plugins: {
@@ -216,6 +275,24 @@ export default class AppView extends LitElement {
                         pan: {
                             enabled: true
                         },
+                    },
+                    title: {
+                        display: true,
+                        text: 'LNM Chart',
+                    },
+                    subtitle: {
+                        display: false,
+                        text: 'Chart Subtitle',
+                        color: 'blue',
+                        font: {
+                            size: 12,
+                            family: 'tahoma',
+                            weight: 'normal',
+                            style: 'italic'
+                        },
+                        padding: {
+                            bottom: 10
+                        }
                     }
                 }
             },
@@ -262,6 +339,50 @@ export default class AppView extends LitElement {
         });
     };
 
+    _initBarChart = () => {
+
+        //console.log(this._data);
+
+        let result = this._data.ohlcChartData.map(x => x.c).reduce((a, b) => {
+            return a + b;
+        });
+        // console.log(result, this._data.ohlcChartData.length)
+        const sma = result / this._data.ohlcChartData.length;
+        // console.log(sma);
+
+        const maxNumber = Math.max(...this._data.ohlcChartData.map(x => x.h));
+        const minNumber = Math.min(...this._data.ohlcChartData.map(x => x.l));
+        // console.log(maxNumber - minNumber)
+
+
+
+        const firstClose = this._data.ohlcChartData[0].c;
+        const lastClose = this._data.ohlcChartData[this._data.ohlcChartData.length - 1].c;
+
+        const data = {
+            datasets: [{
+                data: [{
+                    x: 1697094840000,
+                    y: lastClose,
+                }, {
+                    x: -17,
+                    y: sma
+                    //y: maxNumber - minNumber,
+                }]
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+            },
+        };
+        this._barCart = new Chart(this.querySelector('canvas.bar').getContext('2d'), config);
+    };
+
     _onLogOutClick = async (e) => {
         e.preventDefault();
         await fetch('/api/auth/logout', { method: 'POST' });
@@ -274,10 +395,80 @@ export default class AppView extends LitElement {
         this._table = table;
     };
 
-    _onHideTradeClick = (e) => {
+    _onHideClick = (e) => {
         e.preventDefault();
-        console.log(e);
+        let tradeId = e.target.dataset.tradeId;
+        let table = e.target.dataset.table;
+        let name = e.target.dataset.name;
+        if (!tradeId) {
+            tradeId = e.target.parentNode.dataset.tradeId;
+            table = e.target.parentNode.dataset.table;
+            name = e.target.parentNode.dataset.name;
+        }
+
+        switch (table) {
+            case 'open':
+                this._hideOpenTradeData(tradeId, name);
+                break;
+            case 'running':
+                break;
+            case 'closed':
+                break;
+            default:
+                break;
+        }
+        this.requestUpdate();
     };
+
+    _hideOpenTradeData = (tradeId, name) => {
+        switch (name) {
+            case 'type':
+                const typeHide = this._data.openTradesData.find(x => x.id === tradeId).typeHide;
+                this._data.openTradesData.find(x => x.id === tradeId).typeHide = !typeHide;
+                break;
+            case 'price':
+                const priceHide = this._data.openTradesData.find(x => x.id === tradeId).priceHide;
+                this._data.openTradesData.find(x => x.id === tradeId).priceHide = !priceHide;
+                break;
+            case 'liquidation':
+                const liquidationHide = this._data.openTradesData.find(x => x.id === tradeId).liquidationHide;
+                this._data.openTradesData.find(x => x.id === tradeId).liquidationHide = !liquidationHide;
+                break;
+            case 'leverage':
+                const leverageHide = this._data.openTradesData.find(x => x.id === tradeId).leverageHide;
+                this._data.openTradesData.find(x => x.id === tradeId).leverageHide = !leverageHide;
+                break;
+            case 'margin':
+                const marginHide = this._data.openTradesData.find(x => x.id === tradeId).marginHide;
+                this._data.openTradesData.find(x => x.id === tradeId).marginHide = !marginHide;
+                break;
+            case 'stoploss':
+                const stoplossHide = this._data.openTradesData.find(x => x.id === tradeId).stoplossHide;
+                this._data.openTradesData.find(x => x.id === tradeId).stoplossHide = !stoplossHide;
+                break;
+            case 'takeprofit':
+                const takeprofitHide = this._data.openTradesData.find(x => x.id === tradeId).takeprofitHide;
+                this._data.openTradesData.find(x => x.id === tradeId).takeprofitHide = !takeprofitHide;
+                break;
+            default:
+                break;
+        }
+
+        return;
+
+
+
+        const asd = this._ohlcChart.config.data.datasets
+            .find(x => x.label === 'Open').data
+            .find(x => x.id === tradeId && x.start);
+
+
+        console.log(this._ohlcChart.config.data.datasets.find(x => x.label === 'Open').data.find(x => x.id === tradeId && x.start).start = false);
+        this._ohlcChart.update();
+
+    };
+
+
 }
 
 customElements.define('app-view', AppView);
