@@ -47,10 +47,10 @@ export default class AppView extends LitElement {
             <td>${i + 1}</td>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
             <td>
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="type" class="btn btn-sm btn-link">
-                    ${getEyeIcon(x.typeHide)}
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.sideHide)}
                 </button>
-                ${getValue(x.typeHide, x.type)}
+                ${getValue(x.sideHide, x.side)}
             </td>
             <td>
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
@@ -422,9 +422,9 @@ export default class AppView extends LitElement {
 
     _hideOpenTradeData = (tradeId, name) => {
         switch (name) {
-            case 'type':
-                const typeHide = this._data.openTradesData.find(x => x.id === tradeId).typeHide;
-                this._data.openTradesData.find(x => x.id === tradeId).typeHide = !typeHide;
+            case 'side':
+                const sideHide = this._data.openTradesData.find(x => x.id === tradeId).sideHide;
+                this._data.openTradesData.find(x => x.id === tradeId).sideHide = !sideHide;
                 break;
             case 'price':
                 const priceHide = this._data.openTradesData.find(x => x.id === tradeId).priceHide;
