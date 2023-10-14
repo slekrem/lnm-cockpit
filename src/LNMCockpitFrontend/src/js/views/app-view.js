@@ -59,18 +59,6 @@ export default class AppView extends LitElement {
                 ${getValue(x.sideHide, x.side)}
             </td>
             <td>
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
-                    ${getEyeIcon(x.priceHide)}
-                </button>
-                ${getValue(x.priceHide, x.price)}
-            </td>
-            <td>
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
-                    ${getEyeIcon(x.liquidationHide)}
-                </button>
-                ${getValue(x.liquidationHide, x.liquidation)}
-            </td>
-            <td>
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.leverageHide)}
                 </button>
@@ -81,6 +69,18 @@ export default class AppView extends LitElement {
                     ${getEyeIcon(x.marginHide)}
                 </button>
                 ${getValue(x.marginHide, x.margin)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.priceHide)}
+                </button>
+                ${getValue(x.priceHide, x.price)}
+            </td>
+            <td>
+                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
+                    ${getEyeIcon(x.liquidationHide)}
+                </button>
+                ${getValue(x.liquidationHide, x.liquidation)}
             </td>
             <td>
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
@@ -106,10 +106,10 @@ export default class AppView extends LitElement {
                 <th>Creation</th>
                 <th>Quantity</th>
                 <th>Side</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
                 <th>Leverage</th>
                 <th>Margin</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
                 <th>Stoploss</th>
                 <th>Takeprofit</th>
             </tr>
@@ -156,11 +156,13 @@ export default class AppView extends LitElement {
     </div>
     `;
 
-    _renderRunningTradesTableRow = (x) => {
+    _renderRunningTradesTableRow = (x, i) => {
         return html`
         <tr>
+            <td>${i + 1}</td>
             <td>${new Date(x.creation_ts).toLocaleString()}</td>
-            <td>${x.type}</td>
+            <td>${x.quantity}</td>
+            <td>${x.side}</td>
             <td>${x.price}</td>
             <td>
                 <button @click="${this._onHideClick}" data-tradeId="${x}" class="btn btn-sm btn-link">
@@ -182,6 +184,7 @@ export default class AppView extends LitElement {
             <tr>
                 <th>#</th>
                 <th>Creation</th>
+                <th>Quantity</th>
                 <th>Side</th>
                 <th>Entry Price</th>
                 <th>Liquidation Price</th>
