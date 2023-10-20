@@ -50,52 +50,52 @@ export default class AppView extends LitElement {
 
         return html`
         <tr>
-            <td>${i + 1}</td>
-            <td>${new Date(x.creation_ts).toLocaleString()}</td>
-            <td>${hh}:${mm}:${ss}</td>
-            <td>
+            <td class="text-nowrap">${i + 1}</td>
+            <td class="text-nowrap">${new Date(x.creation_ts).toLocaleString()}</td>
+            <td class="text-nowrap">${hh}:${mm}:${ss}</td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.quantityHide)}
                 </button>
                 ${getValue(x.quantityHide, x.quantity)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.sideHide)}
                 </button>
                 ${getValue(x.sideHide, x.side)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.leverageHide)}
                 </button>
                 ${getValue(x.leverageHide, x.leverage)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.marginHide)}
                 </button>
                 ${getValue(x.marginHide, x.margin)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.priceHide)}
                 </button>
                 ${getValue(x.priceHide, x.price)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.liquidationHide)}
                 </button>
                 ${getValue(x.liquidationHide, x.liquidation)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.stoplossHide)}
                 </button>
                 ${getValue(x.stoplossHide, x.stoploss)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.takeprofitHide)}
                 </button>
@@ -109,17 +109,17 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
-                <th>#</th>
-                <th>Creation</th>
-                <th>Open Duration</th>
-                <th>Quantity</th>
-                <th>Side</th>
-                <th>Leverage</th>
-                <th>Margin</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
-                <th>Stoploss</th>
-                <th>Takeprofit</th>
+                <th class="text-nowrap">#</th>
+                <th class="text-nowrap">Creation</th>
+                <th class="text-nowrap">Open Duration</th>
+                <th class="text-nowrap">Quantity</th>
+                <th class="text-nowrap">Side</th>
+                <th class="text-nowrap">Leverage</th>
+                <th class="text-nowrap">Margin</th>
+                <th class="text-nowrap">Entry Price</th>
+                <th class="text-nowrap">Liquidation Price</th>
+                <th class="text-nowrap">Stoploss</th>
+                <th class="text-nowrap">Takeprofit</th>
             </tr>
             ${this._data?.openTradesData.map(this._renderOpenTradesTableRow)}
         </table>
@@ -138,58 +138,58 @@ export default class AppView extends LitElement {
 
         return html`
         <tr>
-            <td>${i + 1}</td>
-            <td>${new Date(x.market_filled_ts).toLocaleString()}</td>
-            <td>${hh}:${mm}:${ss}</td>
-            <td>
+            <td class="text-nowrap">${i + 1}</td>
+            <td class="text-nowrap">${new Date(x.market_filled_ts).toLocaleString()}</td>
+            <td class="text-nowrap">${hh}:${mm}:${ss}</td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.quantityHide)}
                 </button>
                 ${getValue(x.quantityHide, x.quantity)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.sideHide)}
                 </button>
                 ${getValue(x.sideHide, x.side)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.leverageHide)}
                 </button>
                 ${getValue(x.leverageHide, x.leverage)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.marginHide)}
                 </button>
                 ${getValue(x.marginHide, x.margin)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.priceHide)}
                 </button>
                 ${getValue(x.priceHide, x.price)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.liquidationHide)}
                 </button>
                 ${getValue(x.liquidationHide, x.liquidation)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.stoplossHide)}
                 </button>
                 ${getValue(x.stoplossHide, x.stoploss)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.takeprofitHide)}
                 </button>
                 ${getValue(x.takeprofitHide, x.takeprofit)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="closed" data-trade-id="${x.id}" data-name="pl" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.plHide)}
                 </button>
@@ -203,18 +203,18 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
-                <th>#</th>
-                <th>Market Filled</th>
-                <th>Trade Duration</th>
-                <th>Quantity</th>
-                <th>Side</th>
-                <th>Leverage</th>
-                <th>Margin</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
-                <th>Stoploss</th>
-                <th>Takeprofit</th>
-                <th>PL</th>
+                <th class="text-nowrap">#</th>
+                <th class="text-nowrap">Market Filled</th>
+                <th class="text-nowrap">Trade Duration</th>
+                <th class="text-nowrap">Quantity</th>
+                <th class="text-nowrap">Side</th>
+                <th class="text-nowrap">Leverage</th>
+                <th class="text-nowrap">Margin</th>
+                <th class="text-nowrap">Entry Price</th>
+                <th class="text-nowrap">Liquidation Price</th>
+                <th class="text-nowrap">Stoploss</th>
+                <th class="text-nowrap">Takeprofit</th>
+                <th class="text-nowrap">PL</th>
             </tr>
             ${this._data?.closedTradesData.map(this._renderClosedTradesTableRow)}
         </table>
@@ -232,58 +232,58 @@ export default class AppView extends LitElement {
 
         return html`
         <tr>
-            <td>${i + 1}</td>
-            <td>${new Date(x.market_filled_ts).toLocaleString()}</td>
-            <td>${hh}:${mm}:${ss}</td>
-            <td>
+            <td class="text-nowrap">${i + 1}</td>
+            <td class="text-nowrap">${new Date(x.market_filled_ts).toLocaleString()}</td>
+            <td class="text-nowrap">${hh}:${mm}:${ss}</td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.quantityHide)}
                 </button>
                 ${getValue(x.quantityHide, x.quantity)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.sideHide)}
                 </button>
                 ${getValue(x.sideHide, x.side)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.leverageHide)}
                 </button>
                 ${getValue(x.leverageHide, x.leverage)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.marginHide)}
                 </button>
                 ${getValue(x.marginHide, x.margin)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.priceHide)}
                 </button>
                 ${getValue(x.priceHide, x.price)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.liquidationHide)}
                 </button>
                 ${getValue(x.liquidationHide, x.liquidation)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.stoplossHide)}
                 </button>
                 ${getValue(x.stoplossHide, x.stoploss)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.takeprofitHide)}
                 </button>
                 ${getValue(x.takeprofitHide, x.takeprofit)}
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button @click="${this._onHideClick}" data-table="running" data-trade-id="${x.id}" data-name="pl" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.plHide)}
                 </button>
@@ -297,18 +297,18 @@ export default class AppView extends LitElement {
     <div class="table-responsive mt-5">
         <table class="table table-sm table-striped">
             <tr>
-                <th>#</th>
-                <th>Market Filled</th>
-                <th>Trade Duration</th>
-                <th>Quantity</th>
-                <th>Side</th>
-                <th>Leverage</th>
-                <th>Margin</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
-                <th>Stoploss</th>
-                <th>Takeprofit</th>
-                <th>PL</th>
+                <th class="text-nowrap">#</th>
+                <th class="text-nowrap">Market Filled</th>
+                <th class="text-nowrap">Trade Duration</th>
+                <th class="text-nowrap">Quantity</th>
+                <th class="text-nowrap">Side</th>
+                <th class="text-nowrap">Leverage</th>
+                <th class="text-nowrap">Margin</th>
+                <th class="text-nowrap">Entry Price</th>
+                <th class="text-nowrap">Liquidation Price</th>
+                <th class="text-nowrap">Stoploss</th>
+                <th class="text-nowrap">Takeprofit</th>
+                <th class="text-nowrap">PL</th>
             </tr>
             ${this._data?.runningTradesData.map(this._renderRunningTradesTableRow)}
         </table>
@@ -335,6 +335,27 @@ export default class AppView extends LitElement {
             <div class="text-center">
                 <h1 class="display-1">My LNM Cockpit</h1>                
             </div>
+            <hr>
+            <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">24h in 1min Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">48h in 5min Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">7d in 1h Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">1w in 2h Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">2w in 4h Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">1m in 8h Chart</a>
+                </li>
+            </ul>
             <div class="row">
                 <div class="col-12">
                     <div class="card mt-5">
@@ -349,15 +370,16 @@ export default class AppView extends LitElement {
                     </div>
                 </div>
             </div>
+            <hr>
             <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
+                    <a class="nav-link trades-table active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
+                    <a class="nav-link trades-table" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
+                    <a class="nav-link trades-table" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
                 </li>
             </ul>
             ${this._renderTradesTable()}
@@ -531,7 +553,7 @@ export default class AppView extends LitElement {
 
     _onTableClick = (e) => {
         e.preventDefault();
-        [...this.querySelectorAll('a.nav-link.active')].map(x => x.classList.remove('active'));
+        [...this.querySelectorAll('a.nav-link.trades-table.active')].map(x => x.classList.remove('active'));
         e.target.classList.add('active')
         const table = e.target.dataset.table;
         this._table = table;
