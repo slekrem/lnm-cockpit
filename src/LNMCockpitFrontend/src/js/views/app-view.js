@@ -349,9 +349,9 @@ export default class AppView extends LitElement {
                     </div>
                 </div>
             </div>
-            <ul class="nav justify-content-center mt-5">
+            <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
+                    <a class="nav-link active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="#" data-table="running" @click="${this._onTableClick}">Running Trades</a>
@@ -431,6 +431,7 @@ export default class AppView extends LitElement {
                 }, {
                     type: 'line',
                     label: 'Open',
+                    hidden: true,
                     data: this._data.openTradesChartData,
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
@@ -446,6 +447,7 @@ export default class AppView extends LitElement {
                 }, {
                     type: 'line',
                     label: 'Running',
+                    hidden: true,
                     data: this._data.runningTradesChartData,
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
@@ -460,6 +462,7 @@ export default class AppView extends LitElement {
                 }, {
                     type: 'line',
                     label: 'Closed',
+                    hidden: true,
                     data: this._data.closedTradesChartData,
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
@@ -528,6 +531,8 @@ export default class AppView extends LitElement {
 
     _onTableClick = (e) => {
         e.preventDefault();
+        [...this.querySelectorAll('a.nav-link.active')].map(x => x.classList.remove('active'));
+        e.target.classList.add('active')
         const table = e.target.dataset.table;
         this._table = table;
     };
