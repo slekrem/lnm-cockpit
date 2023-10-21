@@ -338,22 +338,19 @@ export default class AppView extends LitElement {
             <hr>
             <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">24h in 1min Chart</a>
+                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="24h1m" @click="${this._onChartViewClick}">24h in 1min chart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">48h in 5min Chart</a>
+                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="48h5m" @click="${this._onChartViewClick}">48h in 5min chart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">7d in 1h Chart</a>
+                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="7d1h" @click="${this._onChartViewClick}">7d in 1h chart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">1w in 2h Chart</a>
+                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="2w4h" @click="${this._onChartViewClick}">2w in 4h chart</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">2w in 4h Chart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">1m in 8h Chart</a>
+                    <a class="nav-link chart-view active" aria-current="page" href="#" data-view="1m8h" @click="${this._onChartViewClick}">1M in 8h chart</a>
                 </li>
             </ul>
             <div class="row">
@@ -388,7 +385,8 @@ export default class AppView extends LitElement {
     };
 
     firstUpdated = async () => {
-        const response = await fetch('/api/chart/data');
+        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
+        const response = await fetch('/api/chart/data?view=1m8h');
         if (!response.ok) {
             location.reload();
             return;
@@ -405,6 +403,7 @@ export default class AppView extends LitElement {
 
         this._initOhlcChart();
         this._initBarChart();
+        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
 
     _initOhlcChart = () => {
@@ -431,18 +430,8 @@ export default class AppView extends LitElement {
                         text: 'LNM Chart',
                     },
                     subtitle: {
-                        display: false,
-                        text: 'Chart Subtitle',
-                        color: 'blue',
-                        font: {
-                            size: 12,
-                            family: 'tahoma',
-                            weight: 'normal',
-                            style: 'italic'
-                        },
-                        padding: {
-                            bottom: 10
-                        }
+                        display: true,
+                        text: '1 month at 8 hour intervals',
                     }
                 }
             },
@@ -748,6 +737,48 @@ export default class AppView extends LitElement {
             default:
                 break;
         }
+    };
+
+    _onChartViewClick = async (e) => {
+        e.preventDefault();
+        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
+        [...this.querySelectorAll('a.nav-link.chart-view.active')].map(x => x.classList.remove('active'));
+        e.target.classList.add('active');
+
+        const response = await fetch(`/api/chart/data?view=${e.target.dataset.view}`);
+        if (!response.ok) {
+            location.reload();
+            return;
+        }
+
+        this._data = await response.json();
+        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
+        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
+        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
+        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
+
+        switch (e.target.dataset.view) {
+            case '24h1m':
+                this._ohlcChart.config.options.plugins.subtitle.text = '1 day at 1 minute intervals';
+                break;
+            case '48h5m':
+                this._ohlcChart.config.options.plugins.subtitle.text = '2 days at 5 minute intervals';
+                break;
+            case '7d1h':
+                this._ohlcChart.config.options.plugins.subtitle.text = '7 days at 1 hour intervals';
+                break;
+            case '2w4h':
+                this._ohlcChart.config.options.plugins.subtitle.text = '2 weeks at 4 hour intervals';
+                break;
+            case '1m8h':
+            default:
+                this._ohlcChart.config.options.plugins.subtitle.text = '1 month at 8 hour intervals';
+                break;
+        }
+
+        this._ohlcChart.update();
+        this._ohlcChart.resetZoom();
+        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
 }
 
