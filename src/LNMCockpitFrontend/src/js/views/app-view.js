@@ -14,7 +14,8 @@ export default class AppView extends LitElement {
         _ohlcChart: Object,
         _barCart: Object,
         _data: Object,
-        _table: String
+        _table: String,
+        _websocket: Object,
     };
 
     _renderNavbar = () => html`
@@ -406,6 +407,19 @@ export default class AppView extends LitElement {
         [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
 
+    connectedCallback() {
+        super.connectedCallback();
+        this._websocket = new WebSocket('wss://api.lnmarkets.com');
+        this._websocket.onopen = this._onWebSocketOpen;
+        this._websocket.onmessage = this._onWebSocketMessage;
+        this._websocket.onclose = this._onWebSocketClose;
+    }
+
+    disconnectedCallback = () => {
+        super.disconnectedCallback();
+        this._websocket.close();
+    };
+
     _initOhlcChart = () => {
         this._ohlcChart = new Chart(this.querySelector('canvas.ohlc').getContext('2d'), {
             type: 'ohlc',
@@ -780,6 +794,76 @@ export default class AppView extends LitElement {
         this._ohlcChart.resetZoom();
         [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
+
+    _onWebSocketOpen = () => {
+        const payload = {
+            jsonrpc: '2.0',
+            id: this._generateUUID(),
+            method: 'v1/public/subscribe',
+            params: ['futures:btc_usd:last-price', 'futures:btc_usd:index'],
+        };
+        this._websocket.send(JSON.stringify(payload));
+    }
+
+    _onWebSocketMessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.method != 'subscription')
+            return;
+        if (!data.params)
+            return;
+
+        switch (data?.params?.channel) {
+            case 'futures:btc_usd:last-price':
+                this._onFuturesBtcUsdLastPrice(data.params.data);
+                break;
+            case 'futures:btc_usd:index':
+                this._onFuturesBtcUsdIndex(data.params.data);
+            default:
+                break;
+        }
+    }
+
+    _onWebSocketClose = (e) => {
+        console.warn('close', e);
+    };
+
+    _onWebSocketError = (e) => {
+        console.warn('error', e);
+    };
+
+    _onFuturesBtcUsdLastPrice(data) {
+        //console.log('futures:btc_usd:last-price', data);
+    }
+
+    _onFuturesBtcUsdIndex(data) {
+        if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
+            return;
+
+        const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
+        if (data.index > lastItem.h)
+            lastItem.h = data.index;
+        if (data.index < lastItem.l)
+            lastItem.l = data.index;
+        lastItem.c = data.index;
+        this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
+
+        this._ohlcChart.data.datasets
+            .filter(x => x.label === 'Running')
+            .map(x => x.data.filter(y => y.type == 'price' && !y.start))
+            .map(x => x.forEach(y => y.y = data.index))
+            .map(console.log);
+        //.filter(x => x.type === 'price')
+
+        this._ohlcChart.update();
+    }
+
+    _generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 }
 
 customElements.define('app-view', AppView);
