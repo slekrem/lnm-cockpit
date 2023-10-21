@@ -18,17 +18,45 @@
         }
 
         [Route("api/chart/data")]
-        public async Task<IActionResult> ChartData()
+        public async Task<IActionResult> ChartData(string view = "1m8h")
         {
-            var from = DateTime.UtcNow.AddDays(-1).ToUnixTimeInMilliseconds();
+            long fromView;
             var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
+            Func<DateTime, DateTime> GroupByFunc = (x) => throw new Exception();
+            switch (view)
+            {
+                case "24h1m":
+                    fromView = DateTime.UtcNow.AddDays(-1).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
+                case "48h5m":
+                    fromView = DateTime.UtcNow.AddDays(-2).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 5);
+                    break;
+                case "7d1h":
+                    fromView = DateTime.UtcNow.AddDays(-7).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 60);
+                    break;
+                case "2w4h":
+                    fromView = DateTime.UtcNow.AddDays(-14).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNHour(x, 4);
+                    break;
+                case "1m8h":
+                    fromView = DateTime.UtcNow.AddDays(-31).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNHour(x, 8);
+                    break;
+                default:
+                    return BadRequest(new { });
+            }
+
             try
             {
                 var priceHistoryPriceHistoryData = await _lnMarketsService
-                    .FuturesGetPriceHistoryAsync(from, to);
+                    .FuturesGetPriceHistoryAsync(fromView, to);
+
                 var grouppedPriceHistoryPriceHistoryData = priceHistoryPriceHistoryData
-                    .GroupBy(x => Helper.RoundToNearestNMinutes(x.DateTime, 1))
-                    .ToList();
+                    .GroupBy(x => GroupByFunc(x.DateTime)).ToList();
+
                 var ohlcChartData = new List<OhlcChartModel>();
                 grouppedPriceHistoryPriceHistoryData.ForEach(x => ohlcChartData.Add(new OhlcChartModel(x.Key)
                 {
@@ -39,7 +67,7 @@
                 }));
 
                 var openTradesChartData = new List<TradeChartModel>();
-                var openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(from, to);
+                var openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
                 openTradesData.ToList().ForEach(x =>
                 {
                     openTradesChartData.Add(new TradeChartModel
@@ -48,7 +76,7 @@
                         X = x.creation_ts,
                         Y = x.price,
                         Start = true,
-                        BorderColor = x.type == "l" ? "#00ff00" : "#ff0000",
+                        BorderColor = "#ffa500", // x.type == "l" ? "#00ff00" : "#ff0000",
                         Data = x,
                         Type = "price"
                     });
@@ -58,7 +86,7 @@
                         X = ohlcChartData.Last().X,
                         Y = x.price,
                         Start = false,
-                        BorderColor = x.type == "l" ? "#00ff00" : "#ff0000",
+                        BorderColor = "#ffa500", // x.type == "l" ? "#00ff00" : "#ff0000",
                         Data = x,
                         Type = "price"
                     });
@@ -137,7 +165,7 @@
                 });
 
                 var runningTradesChartData = new List<TradeChartModel>();
-                var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(from, to);
+                var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
                 runningTradesData.ToList().ForEach(x =>
                 {
                     runningTradesChartData.Add(new TradeChartModel
@@ -235,7 +263,7 @@
                 });
 
                 var closedTradesChartData = new List<TradeChartModel>();
-                var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(from, to);
+                var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
                 closedTradesData = closedTradesData.Where(x => !x.canceled);
                 closedTradesData.ToList().ForEach(x =>
                 {
