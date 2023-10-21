@@ -14,5 +14,15 @@
             return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, 0);
         }
 
+        public static DateTime RoundToNearestNHour(DateTime dateTime, int NinHour)
+        {
+            var minute = dateTime.Hour;
+            var remainder = minute % NinHour;
+            if (remainder != 0)
+                dateTime = dateTime.AddHours(NinHour - remainder);
+            var dt = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, 0, 0);
+            return dt;
+        }
+
     }
 }
