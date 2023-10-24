@@ -12,9 +12,12 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 export default class AppView extends LitElement {
     static properties = {
         _ohlcChart: Object,
+        _ohlcChartView: String,
         _barCart: Object,
         _data: Object,
-        _table: String
+        _table: String,
+        _websocket: Object,
+        _intervalId: Number,
     };
 
     _renderNavbar = () => html`
@@ -386,13 +389,14 @@ export default class AppView extends LitElement {
 
     firstUpdated = async () => {
         [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
-        const response = await fetch('/api/chart/data?view=1m8h');
+        this._ohlcChartView = '1m8h';
+        const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
         if (!response.ok) {
             location.reload();
             return;
         }
-        this._data = await response.json();
 
+        this._data = await response.json();
         Chart.register(
             ...registerables,
             zoomPlugin,
@@ -402,8 +406,22 @@ export default class AppView extends LitElement {
             CandlestickController);
 
         this._initOhlcChart();
-        this._initBarChart();
+        //this._initBarChart();
         [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+        this._intervalId = setInterval(this._intervalDataFetch, 2880000);
+    };
+
+    connectedCallback() {
+        super.connectedCallback();
+        this._websocket = new WebSocket('wss://api.lnmarkets.com');
+        this._websocket.onopen = this._onWebSocketOpen;
+        this._websocket.onmessage = this._onWebSocketMessage;
+        this._websocket.onclose = this._onWebSocketClose;
+    }
+
+    disconnectedCallback = () => {
+        super.disconnectedCallback();
+        this._websocket.close();
     };
 
     _initOhlcChart = () => {
@@ -741,11 +759,12 @@ export default class AppView extends LitElement {
 
     _onChartViewClick = async (e) => {
         e.preventDefault();
+        this._ohlcChartView = e.target.dataset.view;
         [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
         [...this.querySelectorAll('a.nav-link.chart-view.active')].map(x => x.classList.remove('active'));
         e.target.classList.add('active');
 
-        const response = await fetch(`/api/chart/data?view=${e.target.dataset.view}`);
+        const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
         if (!response.ok) {
             location.reload();
             return;
@@ -757,27 +776,132 @@ export default class AppView extends LitElement {
         this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
         this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
 
-        switch (e.target.dataset.view) {
+        clearInterval(this._intervalId);
+        switch (this._ohlcChartView) {
             case '24h1m':
                 this._ohlcChart.config.options.plugins.subtitle.text = '1 day at 1 minute intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 60000);
                 break;
             case '48h5m':
                 this._ohlcChart.config.options.plugins.subtitle.text = '2 days at 5 minute intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 300000);
                 break;
             case '7d1h':
                 this._ohlcChart.config.options.plugins.subtitle.text = '7 days at 1 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 3600000);
                 break;
             case '2w4h':
                 this._ohlcChart.config.options.plugins.subtitle.text = '2 weeks at 4 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 1440000);
                 break;
             case '1m8h':
             default:
                 this._ohlcChart.config.options.plugins.subtitle.text = '1 month at 8 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 2880000);
                 break;
         }
-
         this._ohlcChart.update();
         this._ohlcChart.resetZoom();
+        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+    };
+
+    _onWebSocketOpen = () => {
+        const payload = {
+            jsonrpc: '2.0',
+            id: this._generateUUID(),
+            method: 'v1/public/subscribe',
+            params: ['futures:btc_usd:last-price', 'futures:btc_usd:index'],
+        };
+        this._websocket.send(JSON.stringify(payload));
+    }
+
+    _onWebSocketMessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.method != 'subscription')
+            return;
+        if (!data.params)
+            return;
+
+        switch (data?.params?.channel) {
+            case 'futures:btc_usd:last-price':
+                this._onFuturesBtcUsdLastPrice(data.params.data);
+                break;
+            case 'futures:btc_usd:index':
+                this._onFuturesBtcUsdIndex(data.params.data);
+            default:
+                break;
+        }
+    }
+
+    _onWebSocketClose = (e) => {
+        console.warn('close', e);
+    };
+
+    _onWebSocketError = (e) => {
+        console.warn('error', e);
+    };
+
+    _onFuturesBtcUsdLastPrice(data) {
+        if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
+            return;
+
+        const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
+        if (data.lastPrice > lastItem.h)
+            lastItem.h = data.lastPrice;
+        if (data.lastPrice < lastItem.l)
+            lastItem.l = data.lastPrice;
+        lastItem.c = data.lastPrice;
+        this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
+
+        this._ohlcChart.data.datasets
+            .filter(x => x.label === 'Running')
+            .map(x => x.data.filter(y => y.type == 'price' && !y.start))
+            .map(x => x.forEach(y => y.y = data.lastPrice))
+
+        this._ohlcChart.update();
+    }
+
+    _onFuturesBtcUsdIndex(data) {
+        if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
+            return;
+
+        const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
+        if (data.index > lastItem.h)
+            lastItem.h = data.index;
+        if (data.index < lastItem.l)
+            lastItem.l = data.index;
+        lastItem.c = data.index;
+        this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
+
+        this._ohlcChart.data.datasets
+            .filter(x => x.label === 'Running')
+            .map(x => x.data.filter(y => y.type == 'price' && !y.start))
+            .map(x => x.forEach(y => y.y = data.index))
+
+        this._ohlcChart.update();
+    }
+
+    _generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    _intervalDataFetch = async () => {
+        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
+        const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
+        if (!response.ok) {
+            location.reload();
+            return;
+        }
+        this._data = await response.json();
+        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
+        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
+        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
+        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
+        this._ohlcChart.update();
         [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
 }
