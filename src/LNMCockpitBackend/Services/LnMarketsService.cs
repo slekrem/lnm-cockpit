@@ -19,7 +19,7 @@
             var method = "GET";
             var path = "/v2/futures/history/price";
             var @params = $"from={from}&to={to}&limit={limit}";
-            var timestamp = GetTimestamp();
+            var timestamp = GetUtcNowInUnixTimestamp();
 
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
             var data = await client.GetFromJsonAsync<IEnumerable<FuturesPriceHistoryModel>>($"{_lnMarketsEndpoint}{path}?{@params}");
@@ -32,7 +32,7 @@
             var method = "GET";
             var path = "/v2/futures";
             var @params = $"type=open&from={from}&to={to}&limit={limit}";
-            var timestamp = GetTimestamp();
+            var timestamp = GetUtcNowInUnixTimestamp();
 
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
             var data = await client.GetFromJsonAsync<IEnumerable<FuturesTradeModel>>($"{_lnMarketsEndpoint}{path}?{@params}") ?? new List<FuturesTradeModel>();
@@ -44,7 +44,7 @@
             var method = "GET";
             var path = "/v2/futures";
             var @params = $"type=closed&from={from}&to={to}&limit={limit}";
-            var timestamp = GetTimestamp();
+            var timestamp = GetUtcNowInUnixTimestamp();
 
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
             var data = await client.GetFromJsonAsync<IEnumerable<FuturesTradeModel>>($"{_lnMarketsEndpoint}{path}?{@params}") ?? new List<FuturesTradeModel>();
@@ -56,7 +56,7 @@
             var method = "GET";
             var path = "/v2/futures";
             var @params = $"type=running&from={from}&to={to}&limit={limit}";
-            var timestamp = GetTimestamp();
+            var timestamp = GetUtcNowInUnixTimestamp();
 
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
             var data = await client.GetFromJsonAsync<IEnumerable<FuturesTradeModel>>($"{_lnMarketsEndpoint}{path}?{@params}") ?? new List<FuturesTradeModel>();
@@ -89,6 +89,6 @@
             return httpClient;
         }
 
-        private static long GetTimestamp() => (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+        private static long GetUtcNowInUnixTimestamp() => (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
     }
 }
