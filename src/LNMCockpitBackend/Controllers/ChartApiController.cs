@@ -68,25 +68,31 @@
 
                 var openTradesChartData = new List<TradeChartModel>();
                 var openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
-                openTradesData.ToList().ForEach(x =>
+
+                openTradesData.Where(x => x.creation_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
                 {
+                    var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
+                        .ToList()
+                        .FirstOrDefault()?.X ?? x.creation_ts;
+                    var lastX = ohlcChartData.Last().X;
+
                     openTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = x.creation_ts,
+                        X = creationX,
                         Y = x.price,
                         Start = true,
-                        BorderColor = "#ffa500", // x.type == "l" ? "#00ff00" : "#ff0000",
+                        BorderColor = "#ffa500",
                         Data = x,
                         Type = "price"
                     });
                     openTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = ohlcChartData.Last().X,
+                        X = lastX,
                         Y = x.price,
                         Start = false,
-                        BorderColor = "#ffa500", // x.type == "l" ? "#00ff00" : "#ff0000",
+                        BorderColor = "#ffa500",
                         Data = x,
                         Type = "price"
                     });
@@ -96,7 +102,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.creation_ts,
+                            X = creationX,
                             Y = x.liquidation,
                             Start = true,
                             BorderColor = "#ff0000",
@@ -106,7 +112,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.liquidation,
                             Start = false,
                             BorderColor = "#ff0000",
@@ -120,7 +126,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.creation_ts,
+                            X = creationX,
                             Y = x.stoploss,
                             Start = true,
                             BorderColor = "#ff0000",
@@ -130,7 +136,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.stoploss,
                             Start = false,
                             BorderColor = "#ff0000",
@@ -144,7 +150,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.creation_ts,
+                            X = creationX,
                             Y = x.takeprofit,
                             Start = true,
                             BorderColor = "#00ff00",
@@ -154,7 +160,7 @@
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.takeprofit,
                             Start = false,
                             BorderColor = "#00ff00",
@@ -166,12 +172,18 @@
 
                 var runningTradesChartData = new List<TradeChartModel>();
                 var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
-                runningTradesData.ToList().ForEach(x =>
+                runningTradesData.Where(x => x.market_filled_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
                 {
+                    var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
+                        .ToList()
+                        .FirstOrDefault()?.X ?? x.market_filled_ts;
+                    var lastX = ohlcChartData.Last().X;
+                    var lastC = ohlcChartData.Last().C;
+
                     runningTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts,
+                        X = marketFilledX,
                         Y = x.price,
                         Start = true,
                         BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
@@ -181,8 +193,8 @@
                     runningTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = ohlcChartData.Last().X,
-                        Y = ohlcChartData.Last().C,
+                        X = lastX,
+                        Y = lastC,
                         Start = false,
                         BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
                         Data = x,
@@ -194,7 +206,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts,
+                            X = marketFilledX,
                             Y = x.liquidation,
                             Start = true,
                             BorderColor = "#ff0000",
@@ -204,7 +216,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.liquidation,
                             Start = false,
                             BorderColor = "#ff0000",
@@ -218,7 +230,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts,
+                            X = marketFilledX,
                             Y = x.stoploss,
                             Start = true,
                             BorderColor = "#ff0000",
@@ -228,7 +240,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.stoploss,
                             Start = false,
                             BorderColor = "#ff0000",
@@ -242,7 +254,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = x.market_filled_ts < ohlcChartData.First().X ? ohlcChartData.First().X : x.market_filled_ts,
+                            X = marketFilledX,
                             Y = x.takeprofit,
                             Start = true,
                             BorderColor = "#00ff00",
@@ -252,7 +264,7 @@
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = ohlcChartData.Last().X,
+                            X = lastX,
                             Y = x.takeprofit,
                             Start = false,
                             BorderColor = "#00ff00",
@@ -267,10 +279,18 @@
                 closedTradesData = closedTradesData.Where(x => !x.canceled);
                 closedTradesData.ToList().ForEach(x =>
                 {
+                    var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
+                        .ToList()
+                        .FirstOrDefault()?.X ?? x.market_filled_ts;
+
+                    var closedX = ohlcChartData.Where(y => y.X >= x.closed_ts)
+                        .ToList()
+                        .FirstOrDefault()?.X ?? x.closed_ts;
+
                     closedTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = x.market_filled_ts,
+                        X = marketFilledX,
                         Y = x.price,
                         Start = true,
                         BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
@@ -280,7 +300,7 @@
                     closedTradesChartData.Add(new TradeChartModel
                     {
                         Id = x.id,
-                        X = x.closed_ts,
+                        X = closedX,
                         Y = x.exit_price,
                         Start = false,
                         BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
