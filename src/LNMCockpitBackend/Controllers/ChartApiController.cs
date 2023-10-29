@@ -69,7 +69,7 @@
                 var openTradesChartData = new List<TradeChartModel>();
                 var openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
 
-                openTradesData.ToList().ForEach(x =>
+                openTradesData.Where(x => x.creation_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
                 {
                     var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
                         .ToList()
@@ -172,7 +172,7 @@
 
                 var runningTradesChartData = new List<TradeChartModel>();
                 var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
-                runningTradesData.ToList().ForEach(x =>
+                runningTradesData.Where(x => x.market_filled_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
                 {
                     var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
                         .ToList()
