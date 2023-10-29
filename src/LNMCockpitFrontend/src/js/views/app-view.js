@@ -9,9 +9,13 @@ import {
 import 'chartjs-adapter-luxon';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
+import '../components/dark-mode-btn';
+
 export default class AppView extends LitElement {
     static properties = {
         _ohlcChart: Object,
+        _ohlcChartScalesXTicks: Array,
+        _ohlcChartScalesYTicks: Array,
         _ohlcChartView: String,
         _barCart: Object,
         _data: Object,
@@ -21,12 +25,15 @@ export default class AppView extends LitElement {
     };
 
     _renderNavbar = () => html`
-    <nav class="navbar bg-body-tertiary fixed-top">
+    <nav class="navbar bg-body-tertiary fixed-top" data-bs-theme-value="light">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">LNM Cockpit</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex">
+                <dark-mode-btn></dark-mode-btn>
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="offcanvasNavbarLabel">LNM Cockpit Menu</h5>
@@ -204,7 +211,7 @@ export default class AppView extends LitElement {
 
     _renderClosedTradesTable = () => html`
     <div class="table-responsive mt-5">
-        <table class="table table-sm table-striped">
+        <table class="table table-sm table-striped ">
             <tr>
                 <th class="text-nowrap">#</th>
                 <th class="text-nowrap">Market Filled</th>
@@ -335,30 +342,33 @@ export default class AppView extends LitElement {
         return html`
         ${this._renderNavbar()}
         <div class="container mt-5">
-            <div class="text-center">
-                <h1 class="display-1">My LNM Cockpit</h1>                
-            </div>
-            <hr>
-            <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
-                <li class="nav-item">
-                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="24h1m" @click="${this._onChartViewClick}">24h in 1min chart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="48h5m" @click="${this._onChartViewClick}">48h in 5min chart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="7d1h" @click="${this._onChartViewClick}">7d in 1h chart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link chart-view" aria-current="page" href="#" data-view="2w4h" @click="${this._onChartViewClick}">2w in 4h chart</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link chart-view active" aria-current="page" href="#" data-view="1m8h" @click="${this._onChartViewClick}">1M in 8h chart</a>
-                </li>
-            </ul>
             <div class="row">
                 <div class="col-12">
                     <div class="card mt-5">
+                        <div class="card-header text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-clock"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item chart-view" href="#" data-view="24h1m" @click="${this._onChartViewClick}">24h in 1min chart</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item chart-view" href="#" data-view="48h5m" @click="${this._onChartViewClick}">48h in 5min chart</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item chart-view" aria-current="page" href="#" data-view="7d1h" @click="${this._onChartViewClick}">7d in 1h chart</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item chart-view" aria-current="page" href="#" data-view="2w4h" @click="${this._onChartViewClick}">2w in 4h chart</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item chart-view active" aria-current="page" href="#" data-view="1m8h" @click="${this._onChartViewClick}">1M in 8h chart</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                         <canvas class="card-img-top ohlc"></canvas>
                     </div>
                 </div>
@@ -388,15 +398,9 @@ export default class AppView extends LitElement {
     };
 
     firstUpdated = async () => {
-        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
         this._ohlcChartView = '1m8h';
-        const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
-        if (!response.ok) {
-            location.reload();
-            return;
-        }
-
-        this._data = await response.json();
+        await this._updateData();
         Chart.register(
             ...registerables,
             zoomPlugin,
@@ -407,7 +411,7 @@ export default class AppView extends LitElement {
 
         this._initOhlcChart();
         //this._initBarChart();
-        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
         this._intervalId = setInterval(this._intervalDataFetch, 2880000);
     };
 
@@ -425,6 +429,15 @@ export default class AppView extends LitElement {
     };
 
     _initOhlcChart = () => {
+        const scalesPlugin = {
+            id: 'scalesPlugin',
+            beforeDraw: (chart, args, options) => {
+                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+                chart.scales.x.ticks = this._ohlcChartScalesXTicks;
+                chart.scales.y.ticks = this._ohlcChartScalesYTicks;
+            }
+        };
+
         this._ohlcChart = new Chart(this.querySelector('canvas.ohlc').getContext('2d'), {
             type: 'ohlc',
             options: {
@@ -450,6 +463,40 @@ export default class AppView extends LitElement {
                     subtitle: {
                         display: true,
                         text: '1 month at 8 hour intervals',
+                    },
+                    scalesPlugin: {
+                        topLeft: 'red',
+                        topRight: 'blue',
+                        bottomRight: 'green',
+                        bottomLeft: 'yellow',
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            color: 'orange'
+                        },
+                        ticks: {
+                            display: false,
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            color: (ctx) => {
+                                switch (ctx.tick.type) {
+                                    case 'h':
+                                        return 'green';
+                                    case 'l':
+                                    default:
+                                        return 'red';
+                                }
+                            }
+                        },
+                        ticks: {
+                            display: false,
+                        }
                     }
                 }
             },
@@ -504,7 +551,8 @@ export default class AppView extends LitElement {
                         }
                     }
                 }]
-            }
+            },
+            plugins: [scalesPlugin]
         });
     };
 
@@ -760,17 +808,11 @@ export default class AppView extends LitElement {
     _onChartViewClick = async (e) => {
         e.preventDefault();
         this._ohlcChartView = e.target.dataset.view;
-        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
-        [...this.querySelectorAll('a.nav-link.chart-view.active')].map(x => x.classList.remove('active'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view.active')].map(x => x.classList.remove('active'));
         e.target.classList.add('active');
 
-        const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
-        if (!response.ok) {
-            location.reload();
-            return;
-        }
-
-        this._data = await response.json();
+        await this._updateData();
         this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
         this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
         this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
@@ -802,7 +844,7 @@ export default class AppView extends LitElement {
         }
         this._ohlcChart.update();
         this._ohlcChart.resetZoom();
-        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
     };
 
     _onWebSocketOpen = () => {
@@ -813,7 +855,7 @@ export default class AppView extends LitElement {
             params: ['futures:btc_usd:last-price', 'futures:btc_usd:index'],
         };
         this._websocket.send(JSON.stringify(payload));
-    }
+    };
 
     _onWebSocketMessage = (e) => {
         const data = JSON.parse(e.data);
@@ -831,7 +873,7 @@ export default class AppView extends LitElement {
             default:
                 break;
         }
-    }
+    };
 
     _onWebSocketClose = (e) => {
         console.warn('close', e);
@@ -859,7 +901,7 @@ export default class AppView extends LitElement {
             .map(x => x.forEach(y => y.y = data.lastPrice))
 
         this._ohlcChart.update();
-    }
+    };
 
     _onFuturesBtcUsdIndex(data) {
         if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
@@ -879,7 +921,7 @@ export default class AppView extends LitElement {
             .map(x => x.forEach(y => y.y = data.index))
 
         this._ohlcChart.update();
-    }
+    };
 
     _generateUUID = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -887,22 +929,75 @@ export default class AppView extends LitElement {
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
-    }
+    };
 
     _intervalDataFetch = async () => {
-        [...this.querySelectorAll('a.nav-link.chart-view')].map(x => x.classList.add('disabled'));
+        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
+        await this._updateData();
+        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
+        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
+        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
+        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
+        this._ohlcChart.update();
+        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+    };
+
+    _updateData = async () => {
         const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
         if (!response.ok) {
             location.reload();
             return;
         }
         this._data = await response.json();
-        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
-        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
-        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
-        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
-        this._ohlcChart.update();
-        [...this.querySelectorAll('a.nav-link.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+
+        const viewCriteria = {
+            '24h1m': (dayOfWeek, h, m, s) => [0, 4, 8, 12, 16, 20].includes(h) && m === 0,
+            '48h5m': (dayOfWeek, h, m, s) => [0, 6, 12, 18].includes(h) && m === 0,
+            '7d1h': (dayOfWeek, h, m, s) => h === 0 && m === 0 && s === 0,
+            '2w4h': (dayOfWeek, h, m, s) => ['Montag', 'Mittwoch', 'Freitag'].includes(dayOfWeek) && h === 0 && m === 0 && s === 0,
+            '1m8h': (dayOfWeek, h, m, s) => dayOfWeek === 'Montag' && h === 0 && m === 0 && s === 0,
+        };
+
+        this._ohlcChartScalesXTicks = this._data.ohlcChartData
+            .filter(x => {
+                const date = new Date(x.x);
+                const dayOfWeek = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][date.getUTCDay()];
+                const h = date.getUTCHours();
+                const m = date.getUTCMinutes();
+                const s = date.getUTCSeconds();
+
+                return viewCriteria[this._ohlcChartView](dayOfWeek, h, m, s);
+            })
+            .map(x => {
+                const date = new Date(x.x);
+                return {
+                    label: date.toLocaleString(),
+                    major: true,
+                    value: x.x,
+                };
+            });
+
+        let max = this._data.ohlcChartData
+            .reduce((prev, current) => (prev && prev.h > current.h) ? prev : current);
+
+        this._ohlcChartScalesYTicks = [{ label: max.h, value: max.h, type: 'h' }];
+        for (var i = 1; i < this._ohlcChartScalesXTicks.length; ++i) {
+            const prev = this._ohlcChartScalesXTicks[i - 1];
+            const current = this._ohlcChartScalesXTicks[i];
+
+            let max = this._data.ohlcChartData
+                .filter(x => x.x > prev.value && x.x < current.value)
+                .reduce((x, y) => (x && x.h > y.h) ? x : y);
+            this._ohlcChartScalesYTicks.push({ label: max.h, value: max.h, type: 'h' });
+
+            let min = this._data.ohlcChartData
+                .filter(x => x.x > prev.value && x.x < current.value)
+                .reduce((x, y) => (x && x.l < y.l) ? x : y);
+            this._ohlcChartScalesYTicks.push({ label: min.l, value: min.l, type: 'l' });
+        }
+
+        let min = this._data.ohlcChartData.reduce((prev, current) => (prev && prev.l < current.l) ? prev : current);
+        this._ohlcChartScalesYTicks.push({ label: min.l, value: min.l, type: 'l' });
     };
 }
 
