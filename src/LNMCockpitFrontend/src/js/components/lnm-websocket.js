@@ -5,9 +5,6 @@ export default class LnmWebsocket extends LitElement {
         _websocket: Object,
     };
 
-    createRenderRoot = () => this;
-    render = () => html``;
-
     connectedCallback() {
         super.connectedCallback();
         this._websocket = new WebSocket('wss://api.lnmarkets.com');
