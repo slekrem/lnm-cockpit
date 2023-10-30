@@ -11,6 +11,7 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 
 import '../components/dark-mode-btn';
 import '../components/chart-time-btn';
+import '../components/lnm-websocket';
 
 export default class AppView extends LitElement {
     static properties = {
@@ -21,7 +22,6 @@ export default class AppView extends LitElement {
         _barCart: Object,
         _data: Object,
         _table: String,
-        _websocket: Object,
         _intervalId: Number,
     };
 
@@ -323,11 +323,12 @@ export default class AppView extends LitElement {
                         <div class="card-header text-end">
                             <chart-time-btn @time-click="${this._onTimeClick}"></chart-time-btn>
                         </div>
+                        <lnm-websocket @price="${this._onPrice}"></lnm-websocket>
                         <canvas class="card-img-top ohlc"></canvas>
                     </div>
                 </div>
             </div>
-            <hr>
+            <!-- <hr>
             <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
                 <li class="nav-item">
                     <a class="nav-link trades-table active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
@@ -339,7 +340,7 @@ export default class AppView extends LitElement {
                     <a class="nav-link trades-table" aria-current="page" href="#" data-table="closed" @click="${this._onTableClick}">Closed Trades</a>
                 </li>
             </ul>
-            ${this._renderTradesTable()}
+            {this._renderTradesTable()} -->
         </div>
         `;
     };
@@ -358,19 +359,6 @@ export default class AppView extends LitElement {
         this._initOhlcChart();
         this.querySelector('chart-time-btn').removeAttribute('disabled');
         this._intervalId = setInterval(this._intervalDataFetch, 2880000);
-    };
-
-    connectedCallback() {
-        super.connectedCallback();
-        this._websocket = new WebSocket('wss://api.lnmarkets.com');
-        this._websocket.onopen = this._onWebSocketOpen;
-        this._websocket.onmessage = this._onWebSocketMessage;
-        this._websocket.onclose = this._onWebSocketClose;
-    }
-
-    disconnectedCallback = () => {
-        super.disconnectedCallback();
-        this._websocket.close();
     };
 
     _initOhlcChart = () => {
@@ -499,50 +487,6 @@ export default class AppView extends LitElement {
             },
             plugins: [scalesPlugin]
         });
-    };
-
-    _initBarChart = () => {
-
-        //console.log(this._data);
-
-        let result = this._data.ohlcChartData.map(x => x.c).reduce((a, b) => {
-            return a + b;
-        });
-        // console.log(result, this._data.ohlcChartData.length)
-        const sma = result / this._data.ohlcChartData.length;
-        // console.log(sma);
-
-        const maxNumber = Math.max(...this._data.ohlcChartData.map(x => x.h));
-        const minNumber = Math.min(...this._data.ohlcChartData.map(x => x.l));
-        // console.log(maxNumber - minNumber)
-
-
-
-        const firstClose = this._data.ohlcChartData[0].c;
-        const lastClose = this._data.ohlcChartData[this._data.ohlcChartData.length - 1].c;
-
-        const data = {
-            datasets: [{
-                data: [{
-                    x: 1697094840000,
-                    y: lastClose,
-                }, {
-                    x: -17,
-                    y: sma
-                    //y: maxNumber - minNumber,
-                }]
-            }]
-        };
-
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-            },
-        };
-        this._barCart = new Chart(this.querySelector('canvas.bar').getContext('2d'), config);
     };
 
     _onTableClick = (e) => {
@@ -744,89 +688,22 @@ export default class AppView extends LitElement {
         }
     };
 
-    _onWebSocketOpen = () => {
-        const payload = {
-            jsonrpc: '2.0',
-            id: this._generateUUID(),
-            method: 'v1/public/subscribe',
-            params: ['futures:btc_usd:last-price', 'futures:btc_usd:index'],
-        };
-        this._websocket.send(JSON.stringify(payload));
-    };
-
-    _onWebSocketMessage = (e) => {
-        const data = JSON.parse(e.data);
-        if (data.method != 'subscription')
-            return;
-        if (!data.params)
-            return;
-
-        switch (data?.params?.channel) {
-            case 'futures:btc_usd:last-price':
-                this._onFuturesBtcUsdLastPrice(data.params.data);
-                break;
-            case 'futures:btc_usd:index':
-                this._onFuturesBtcUsdIndex(data.params.data);
-            default:
-                break;
-        }
-    };
-
-    _onWebSocketClose = (e) => {
-        console.warn('close', e);
-    };
-
-    _onWebSocketError = (e) => {
-        console.warn('error', e);
-    };
-
-    _onFuturesBtcUsdLastPrice(data) {
+    _onPrice = e => {
         if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
             return;
-
         const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
-        if (data.lastPrice > lastItem.h)
-            lastItem.h = data.lastPrice;
-        if (data.lastPrice < lastItem.l)
-            lastItem.l = data.lastPrice;
-        lastItem.c = data.lastPrice;
+        if (e.detail > lastItem.h)
+            lastItem.h = e.detail;
+        if (e.detail < lastItem.l)
+            lastItem.l = e.detail;
+        lastItem.c = e.detail;
         this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
-
         this._ohlcChart.data.datasets
             .filter(x => x.label === 'Running')
             .map(x => x.data.filter(y => y.type == 'price' && !y.start))
-            .map(x => x.forEach(y => y.y = data.lastPrice))
-
+            .map(x => x.forEach(y => y.y = e.detail))
         this._ohlcChart.update();
-    };
-
-    _onFuturesBtcUsdIndex(data) {
-        if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
-            return;
-
-        const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
-        if (data.index > lastItem.h)
-            lastItem.h = data.index;
-        if (data.index < lastItem.l)
-            lastItem.l = data.index;
-        lastItem.c = data.index;
-        this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
-
-        this._ohlcChart.data.datasets
-            .filter(x => x.label === 'Running')
-            .map(x => x.data.filter(y => y.type == 'price' && !y.start))
-            .map(x => x.forEach(y => y.y = data.index))
-
-        this._ohlcChart.update();
-    };
-
-    _generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
+    }
 
     _intervalDataFetch = async () => {
         this.querySelector('chart-time-btn').setAttribute('disabled', 'true');
