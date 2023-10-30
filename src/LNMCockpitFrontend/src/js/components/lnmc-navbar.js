@@ -6,7 +6,7 @@ export default class LnmcNavbar extends LitElement {
     };
 
     _renderOffcanvasBody = () => {
-        if (this.isAuthenticated)
+        if (!this.isAuthenticated)
             return html`<login-form class="w-100"></login-form>`;
         return html`<button class="btn btn-danger w-100" @click="${this._onLogOutClick}">Log out</button>
         `;
@@ -14,7 +14,6 @@ export default class LnmcNavbar extends LitElement {
 
     createRenderRoot = () => this;
     render = () => {
-        console.log(this.isAuthenticated);
         return html`
         <nav class="navbar bg-body-tertiary fixed-top" data-bs-theme-value="light">
             <div class="container-fluid">
