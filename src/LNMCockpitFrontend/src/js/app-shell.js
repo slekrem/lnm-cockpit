@@ -1,32 +1,24 @@
 import { html, LitElement } from 'lit';
 
-import './views/login-view';
 import './views/app-view';
+import './components/lnmc-navbar';
 
 export default class AppShell extends LitElement {
     static properties = {
-        _view: String
+        _isAuthenticated: Boolean
     };
 
     createRenderRoot = () => this;
     render = () => {
-        switch (this._view) {
-            case 'app':
-                return html`<app-view></app-view>`;
-            case 'login':
-                return html`<login-view></login-view>`;
-            default:
-                return html``;
-        }
-    }
+        return html`
+        <lnmc-navbar .isAuthenticated="${this._isAuthenticated}"></lnmc-navbar>
+        <app-view></app-view>`;
+    };
 
     firstUpdated = async () => {
         const response = await fetch('/api/auth/is-authenticated');
         const data = await response.json();
-        if (data.isAuthenticated)
-            this._view = 'app';
-        else
-            this._view = 'login';
+        this._isAuthenticated = !data.isAuthenticated;
     };
 }
 
