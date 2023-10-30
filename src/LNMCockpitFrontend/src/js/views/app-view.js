@@ -10,6 +10,8 @@ import 'chartjs-adapter-luxon';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
 import '../components/dark-mode-btn';
+import '../components/chart-time-btn';
+
 export default class AppView extends LitElement {
     static properties = {
         _ohlcChart: Object,
@@ -319,37 +321,9 @@ export default class AppView extends LitElement {
                 <div class="col-12">
                     <div class="card mt-5">
                         <div class="card-header text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-clock"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <a class="dropdown-item chart-view" href="#" data-view="24h1m" @click="${this._onChartViewClick}">24h in 1min chart</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item chart-view" href="#" data-view="48h5m" @click="${this._onChartViewClick}">48h in 5min chart</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item chart-view" aria-current="page" href="#" data-view="7d1h" @click="${this._onChartViewClick}">7d in 1h chart</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item chart-view" aria-current="page" href="#" data-view="2w4h" @click="${this._onChartViewClick}">2w in 4h chart</a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item chart-view active" aria-current="page" href="#" data-view="1m8h" @click="${this._onChartViewClick}">1M in 8h chart</a>
-                                    </li>
-                                </ul>
-                            </div>
+                            <chart-time-btn @time-click="${this._onTimeClick}"></chart-time-btn>
                         </div>
                         <canvas class="card-img-top ohlc"></canvas>
-                    </div>
-                </div>
-                <div class="col-12 d-none">
-                    <div class="card mt-5">
-                        <div style="height: ${this._ohlcChart?.height}px">
-                            <canvas class="card-img-top bar"></canvas>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -371,7 +345,7 @@ export default class AppView extends LitElement {
     };
 
     firstUpdated = async () => {
-        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
+        this.querySelector('chart-time-btn')?.setAttribute('disabled', 'true');
         this._ohlcChartView = '1m8h';
         await this._updateData();
         Chart.register(
@@ -381,10 +355,8 @@ export default class AppView extends LitElement {
             OhlcController,
             CandlestickElement,
             CandlestickController);
-
         this._initOhlcChart();
-        //this._initBarChart();
-        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+        this.querySelector('chart-time-btn').removeAttribute('disabled');
         this._intervalId = setInterval(this._intervalDataFetch, 2880000);
     };
 
@@ -772,48 +744,6 @@ export default class AppView extends LitElement {
         }
     };
 
-    _onChartViewClick = async (e) => {
-        e.preventDefault();
-        this._ohlcChartView = e.target.dataset.view;
-        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
-        [...this.querySelectorAll('a.dropdown-item.chart-view.active')].map(x => x.classList.remove('active'));
-        e.target.classList.add('active');
-
-        await this._updateData();
-        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
-        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
-        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
-        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
-
-        clearInterval(this._intervalId);
-        switch (this._ohlcChartView) {
-            case '24h1m':
-                this._ohlcChart.config.options.plugins.subtitle.text = '1 day at 1 minute intervals';
-                this._intervalId = setInterval(this._intervalDataFetch, 60000);
-                break;
-            case '48h5m':
-                this._ohlcChart.config.options.plugins.subtitle.text = '2 days at 5 minute intervals';
-                this._intervalId = setInterval(this._intervalDataFetch, 300000);
-                break;
-            case '7d1h':
-                this._ohlcChart.config.options.plugins.subtitle.text = '7 days at 1 hour intervals';
-                this._intervalId = setInterval(this._intervalDataFetch, 3600000);
-                break;
-            case '2w4h':
-                this._ohlcChart.config.options.plugins.subtitle.text = '2 weeks at 4 hour intervals';
-                this._intervalId = setInterval(this._intervalDataFetch, 1440000);
-                break;
-            case '1m8h':
-            default:
-                this._ohlcChart.config.options.plugins.subtitle.text = '1 month at 8 hour intervals';
-                this._intervalId = setInterval(this._intervalDataFetch, 2880000);
-                break;
-        }
-        this._ohlcChart.update();
-        this._ohlcChart.resetZoom();
-        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
-    };
-
     _onWebSocketOpen = () => {
         const payload = {
             jsonrpc: '2.0',
@@ -899,14 +829,14 @@ export default class AppView extends LitElement {
     };
 
     _intervalDataFetch = async () => {
-        [...this.querySelectorAll('a.dropdown-item.chart-view')].map(x => x.classList.add('disabled'));
+        this.querySelector('chart-time-btn').setAttribute('disabled', 'true');
         await this._updateData();
         this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
         this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
         this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
         this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
         this._ohlcChart.update();
-        [...this.querySelectorAll('a.dropdown-item.chart-view.disabled')].map(x => x.classList.remove('disabled'));
+        this.querySelector('chart-time-btn').removeAttribute('disabled');
     };
 
     _updateData = async () => {
@@ -966,6 +896,46 @@ export default class AppView extends LitElement {
         let min = this._data.ohlcChartData.reduce((prev, current) => (prev && prev.l < current.l) ? prev : current);
         this._ohlcChartScalesYTicks.push({ label: min.l, value: min.l, type: 'l' });
     };
+
+    _onTimeClick = async (e) => {
+        e.preventDefault();
+        e.target.setAttribute('disabled', 'true');
+        this._ohlcChartView = e.detail;
+
+        await this._updateData();
+        this._ohlcChart.config.data.datasets[0].data = this._data.ohlcChartData;
+        this._ohlcChart.config.data.datasets[1].data = this._data.openTradesChartData;
+        this._ohlcChart.config.data.datasets[2].data = this._data.runningTradesChartData;
+        this._ohlcChart.config.data.datasets[3].data = this._data.closedTradesChartData;
+
+        clearInterval(this._intervalId);
+        switch (this._ohlcChartView) {
+            case '24h1m':
+                this._ohlcChart.config.options.plugins.subtitle.text = '1 day at 1 minute intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 60000);
+                break;
+            case '48h5m':
+                this._ohlcChart.config.options.plugins.subtitle.text = '2 days at 5 minute intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 300000);
+                break;
+            case '7d1h':
+                this._ohlcChart.config.options.plugins.subtitle.text = '7 days at 1 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 3600000);
+                break;
+            case '2w4h':
+                this._ohlcChart.config.options.plugins.subtitle.text = '2 weeks at 4 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 1440000);
+                break;
+            case '1m8h':
+            default:
+                this._ohlcChart.config.options.plugins.subtitle.text = '1 month at 8 hour intervals';
+                this._intervalId = setInterval(this._intervalDataFetch, 2880000);
+                break;
+        }
+        this._ohlcChart.update();
+        this._ohlcChart.resetZoom();
+        e.target.removeAttribute('disabled');
+    }
 }
 
 customElements.define('app-view', AppView);
