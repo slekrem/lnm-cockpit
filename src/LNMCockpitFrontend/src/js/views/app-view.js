@@ -10,8 +10,6 @@ import 'chartjs-adapter-luxon';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
 import '../components/dark-mode-btn';
-import '../components/lnmc-navbar';
-
 export default class AppView extends LitElement {
     static properties = {
         _ohlcChart: Object,
@@ -316,7 +314,6 @@ export default class AppView extends LitElement {
     createRenderRoot = () => this;
     render = () => {
         return html`
-        <lnmc-navbar></lnmc-navbar>
         <div class="container mt-5">
             <div class="row">
                 <div class="col-12">
