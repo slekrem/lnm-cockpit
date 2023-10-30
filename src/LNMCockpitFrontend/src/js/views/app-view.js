@@ -1,17 +1,10 @@
 import { html, LitElement } from 'lit';
-import { Chart, registerables } from 'chart.js';
-import {
-    OhlcElement,
-    OhlcController,
-    CandlestickElement,
-    CandlestickController
-} from 'chartjs-chart-financial';
-import 'chartjs-adapter-luxon';
-import zoomPlugin from 'chartjs-plugin-zoom';
 
 import '../components/dark-mode-btn';
 import '../components/chart-time-btn';
 import '../components/lnm-websocket';
+import '../components/lnm-chart';
+import '../components/trades-tables';
 
 export default class AppView extends LitElement {
     static properties = {
@@ -19,7 +12,6 @@ export default class AppView extends LitElement {
         _ohlcChartScalesXTicks: Array,
         _ohlcChartScalesYTicks: Array,
         _ohlcChartView: String,
-        _barCart: Object,
         _data: Object,
         _table: String,
         _intervalId: Number,
@@ -324,7 +316,11 @@ export default class AppView extends LitElement {
                             <chart-time-btn @time-click="${this._onTimeClick}"></chart-time-btn>
                         </div>
                         <lnm-websocket @price="${this._onPrice}"></lnm-websocket>
-                        <canvas class="card-img-top ohlc"></canvas>
+                        <lnm-chart class="card-img-top"></lnm-chart>
+                        <hr>
+                        <div class="card-body">
+                            <trades-tables class="mb-5"></trades-tables>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -349,144 +345,8 @@ export default class AppView extends LitElement {
         this.querySelector('chart-time-btn')?.setAttribute('disabled', 'true');
         this._ohlcChartView = '1m8h';
         await this._updateData();
-        Chart.register(
-            ...registerables,
-            zoomPlugin,
-            OhlcElement,
-            OhlcController,
-            CandlestickElement,
-            CandlestickController);
-        this._initOhlcChart();
         this.querySelector('chart-time-btn').removeAttribute('disabled');
         this._intervalId = setInterval(this._intervalDataFetch, 2880000);
-    };
-
-    _initOhlcChart = () => {
-        const scalesPlugin = {
-            id: 'scalesPlugin',
-            beforeDraw: (chart, args, options) => {
-                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
-                chart.scales.x.ticks = this._ohlcChartScalesXTicks;
-                chart.scales.y.ticks = this._ohlcChartScalesYTicks;
-            }
-        };
-
-        this._ohlcChart = new Chart(this.querySelector('canvas.ohlc').getContext('2d'), {
-            type: 'ohlc',
-            options: {
-                plugins: {
-                    zoom: {
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: false
-                            },
-                            mode: 'xy',
-                        },
-                        pan: {
-                            enabled: true
-                        },
-                    },
-                    title: {
-                        display: true,
-                        text: 'LNM Chart',
-                    },
-                    subtitle: {
-                        display: true,
-                        text: '1 month at 8 hour intervals',
-                    },
-                    scalesPlugin: {
-                        topLeft: 'red',
-                        topRight: 'blue',
-                        bottomRight: 'green',
-                        bottomLeft: 'yellow',
-                    }
-                },
-                scales: {
-                    x: {
-                        display: false,
-                        grid: {
-                            color: 'orange'
-                        },
-                        ticks: {
-                            display: false,
-                        }
-                    },
-                    y: {
-                        display: false,
-                        grid: {
-                            color: (ctx) => {
-                                switch (ctx.tick.type) {
-                                    case 'h':
-                                        return 'green';
-                                    case 'l':
-                                    default:
-                                        return 'red';
-                                }
-                            }
-                        },
-                        ticks: {
-                            display: false,
-                        }
-                    }
-                }
-            },
-            data: {
-                datasets: [{
-                    label: 'Bitcoin / U.S. Dollar',
-                    data: this._data.ohlcChartData
-                }, {
-                    type: 'line',
-                    label: 'Open',
-                    hidden: true,
-                    data: this._data.openTradesChartData,
-                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                    pointBorderColor: 'rgba(0, 0, 0, 0)',
-                    segment: {
-                        borderColor: ctx => {
-                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
-                            if (ctx.p0.raw.start)
-                                return ctx.p0.raw.borderColor;
-                            return 'rgba(0,0,0,0)';
-                        },
-
-                    }
-                }, {
-                    type: 'line',
-                    label: 'Running',
-                    hidden: true,
-                    data: this._data.runningTradesChartData,
-                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                    pointBorderColor: 'rgba(0, 0, 0, 0)',
-                    segment: {
-                        borderColor: ctx => {
-                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
-                            if (ctx.p0.raw.start)
-                                return ctx.p0.raw.borderColor;
-                            return 'rgba(0,0,0,0)';
-                        },
-                    }
-                }, {
-                    type: 'line',
-                    label: 'Closed',
-                    hidden: true,
-                    data: this._data.closedTradesChartData,
-                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                    pointBorderColor: 'rgba(0, 0, 0, 0)',
-                    segment: {
-                        borderColor: ctx => {
-                            if (ctx.p0.parsed.hide) return 'rgba(0,0,0,0)';
-                            if (ctx.p0.raw.start)
-                                return ctx.p0.raw.borderColor;
-                            return 'rgba(0,0,0,0)';
-                        }
-                    }
-                }]
-            },
-            plugins: [scalesPlugin]
-        });
     };
 
     _onTableClick = (e) => {
