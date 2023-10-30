@@ -1,10 +1,20 @@
 import { LitElement, html } from "lit";
-
+import './login-form';
 export default class LnmcNavbar extends LitElement {
-    static properties = {};
+    static properties = {
+        isAuthenticated: Boolean
+    };
+
+    _renderOffcanvasBody = () => {
+        if (this.isAuthenticated)
+            return html`<login-form class="w-100"></login-form>`;
+        return html`<button class="btn btn-danger w-100" @click="${this._onLogOutClick}">Log out</button>
+        `;
+    }
 
     createRenderRoot = () => this;
     render = () => {
+        console.log(this.isAuthenticated);
         return html`
         <nav class="navbar bg-body-tertiary fixed-top" data-bs-theme-value="light">
             <div class="container-fluid">
@@ -22,7 +32,7 @@ export default class LnmcNavbar extends LitElement {
                     </div>
                     <div class="offcanvas-body">
                         <div class="d-flex align-items-end justify-content-end h-100">
-                            <button class="btn btn-danger w-100" @click="${this._onLogOutClick}">Log out</button>
+                            ${this._renderOffcanvasBody()}
                         </div>
                     </div>
                 </div>
