@@ -148,7 +148,7 @@ export default class AppView extends LitElement {
 
     _onTradeVisClick = e => {
         e.preventDefault();
-        //console.log('asd', e.detail);
+        this.querySelector('lnm-chart').updateChartDatasetVis(e.detail);
     };
 }
 
