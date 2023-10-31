@@ -71,7 +71,7 @@ export default class TradesOpenTable extends LitElement{
 
     createRenderRoot = () => this;
     render = () => html`
-    <div class="table-responsive mt-5">
+    <div class="table-responsive mt-3">
         <table class="table table-sm table-striped">
             <tr>
                 <th class="text-nowrap">#</th>
