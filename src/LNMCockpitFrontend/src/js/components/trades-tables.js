@@ -23,7 +23,7 @@ export default class TradesTables extends LitElement {
 
     createRenderRoot = () => this;
     render = () => html`
-    <ul class="nav nav-pills flex-column flex-sm-row justify-content-center mt-5">
+    <ul class="nav nav-pills flex-column flex-sm-row justify-content-center">
         <li class="nav-item">
             <a class="nav-link trades-table active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
         </li>
