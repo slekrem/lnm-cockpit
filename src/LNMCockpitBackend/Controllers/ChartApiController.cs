@@ -78,8 +78,10 @@
 
                 if (User?.Identity?.IsAuthenticated ?? false)
                 {
+                    var firstOhlcX = ohlcChartData.First().X;
                     openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
-                    openTradesData.Where(x => x.creation_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
+                    openTradesData = openTradesData.Where(x => x.creation_ts >= firstOhlcX);
+                    openTradesData.ToList().ForEach(x =>
                     {
                         var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
                             .ToList()
@@ -181,7 +183,8 @@
                     });
 
                     runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
-                    runningTradesData.Where(x => x.market_filled_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
+                    runningTradesData = runningTradesData.Where(x => x.market_filled_ts >= firstOhlcX);
+                    runningTradesData.ToList().ForEach(x =>
                     {
                         var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
                             .ToList()
@@ -284,7 +287,7 @@
                     });
 
                     closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
-                    closedTradesData = closedTradesData.Where(x => !x.canceled);
+                    closedTradesData = closedTradesData.Where(x => x.market_filled_ts >= firstOhlcX && !x.canceled);
                     closedTradesData.ToList().ForEach(x =>
                     {
                         var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
