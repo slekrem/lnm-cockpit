@@ -86,22 +86,21 @@ export default class AppView extends LitElement {
     };
 
     _onPrice = e => {
-        /*
-        if (!this._ohlcChart || this._ohlcChart.data.datasets[0].data.length <= 0)
+        if (!this._data?.chartData?.ohlcChartData)
             return;
-        const lastItem = this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1];
-        if (e.detail > lastItem.h)
-            lastItem.h = e.detail;
-        if (e.detail < lastItem.l)
-            lastItem.l = e.detail;
-        lastItem.c = e.detail;
-        this._ohlcChart.data.datasets[0].data[this._ohlcChart.data.datasets[0].data.length - 1] = lastItem;
-        this._ohlcChart.data.datasets
-            .filter(x => x.label === 'Running')
+        const lastOhlc = this._data.chartData.ohlcChartData.pop();
+        if (e.detail > lastOhlc.h)
+            lastOhlc.h = e.detail;
+        if (e.detail < lastOhlc.l)
+            lastOhlc.l = e.detail;
+        lastOhlc.c = e.detail;
+        this._data.chartData.ohlcChartData.push(lastOhlc);
+
+        this._data.chartData.runningTradesChartData.filter(x => x.label === 'Running')
             .map(x => x.data.filter(y => y.type == 'price' && !y.start))
-            .map(x => x.forEach(y => y.y = e.detail))
-        this._ohlcChart.update();
-        */
+            .map(x => x.forEach(y => y.y = e.detail));
+
+        this.querySelector('lnm-chart').updateChartData(this._data.chartData);
     };
 
     _onTimeClick = async (e) => {
