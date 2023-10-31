@@ -19,7 +19,6 @@ export default class AppView extends LitElement {
     _renderTradesTable = () => {
         if (this.isAuthenticated)
             return html`
-            <hr>
             <div class="card-body">
                 <trades-tables class="mb-5"></trades-tables>
             </div>`;
