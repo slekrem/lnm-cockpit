@@ -75,16 +75,20 @@
         private HttpClient GetLnMarketsHttpClient(string signature, long timestamp)
         {
             var httpClient = new HttpClient();
-            var key = _httpContextAccessor.HttpContext?.User.Claims
-                .FirstOrDefault(x => x.Type == "key")?.Value ?? string.Empty;
-            var passphrase = _httpContextAccessor.HttpContext?.User.Claims
-                .FirstOrDefault(x => x.Type == "passphrase")?.Value ?? string.Empty;
 
-            httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-KEY", key);
-            httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-PASSPHRASE", passphrase);
-            httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-SIGNATURE", signature);
-            httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-TIMESTAMP", timestamp.ToString());
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+            if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false)
+            {
+                var key = _httpContextAccessor.HttpContext?.User.Claims
+                    .FirstOrDefault(x => x.Type == "key")?.Value ?? string.Empty;
+                var passphrase = _httpContextAccessor.HttpContext?.User.Claims
+                    .FirstOrDefault(x => x.Type == "passphrase")?.Value ?? string.Empty;
+
+                httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-KEY", key);
+                httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-PASSPHRASE", passphrase);
+                httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-SIGNATURE", signature);
+                httpClient.DefaultRequestHeaders.Add("LNM-ACCESS-TIMESTAMP", timestamp.ToString());
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+            }
 
             return httpClient;
         }
