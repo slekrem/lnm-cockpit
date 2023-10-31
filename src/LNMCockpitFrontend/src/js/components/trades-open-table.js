@@ -1,7 +1,9 @@
 import { LitElement, html } from "lit";
 
-export default class TradesOpenTable extends LitElement{
-    properties = {};
+export default class TradesOpenTable extends LitElement {
+    properties = {
+        data: Array
+    };
 
     _renderTableRow = (x, i) => {
         const getEyeIcon = hide => hide ? html`<i class="bi bi-eye-fill"></i>` : html`<i class="bi bi-eye-slash-fill"></i>`;
@@ -86,7 +88,7 @@ export default class TradesOpenTable extends LitElement{
                 <th class="text-nowrap">Stoploss</th>
                 <th class="text-nowrap">Takeprofit</th>
             </tr>
-            ${this._data?.openTradesData.map(this._renderTableRow)}
+            ${this.data.map(this._renderTableRow)}
         </table>
     </div>
     `;
