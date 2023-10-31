@@ -6,6 +6,7 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using LNMCockpit.Models.Chart;
+    using LNMCockpit.Models.LnMarkets;
 
     [Authorize]
     public class ChartApiController : ControllerBase
@@ -17,6 +18,7 @@
             _lnMarketsService = lnMarketsService;
         }
 
+        [AllowAnonymous]
         [Route("api/chart/data")]
         public async Task<IActionResult> ChartData(string view = "1m8h")
         {
@@ -58,6 +60,14 @@
                     .GroupBy(x => GroupByFunc(x.DateTime)).ToList();
 
                 var ohlcChartData = new List<OhlcChartModel>();
+                IEnumerable<FuturesTradeModel>? openTradesData = null;
+                IEnumerable<FuturesTradeModel>? runningTradesData = null;
+                IEnumerable<FuturesTradeModel>? closedTradesData = null;
+
+                var openTradesChartData = new List<TradeChartModel>();
+                var runningTradesChartData = new List<TradeChartModel>();
+                var closedTradesChartData = new List<TradeChartModel>();
+
                 grouppedPriceHistoryPriceHistoryData.ForEach(x => ohlcChartData.Add(new OhlcChartModel(x.Key)
                 {
                     O = x.First().Value,
@@ -66,263 +76,264 @@
                     C = x.Last().Value
                 }));
 
-                var openTradesChartData = new List<TradeChartModel>();
-                var openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
-
-                openTradesData.Where(x => x.creation_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
+                if (User?.Identity?.IsAuthenticated ?? false)
                 {
-                    var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
-                        .ToList()
-                        .FirstOrDefault()?.X ?? x.creation_ts;
-                    var lastX = ohlcChartData.Last().X;
+                    openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
+                    openTradesData.Where(x => x.creation_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
+                    {
+                        var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
+                            .ToList()
+                            .FirstOrDefault()?.X ?? x.creation_ts;
+                        var lastX = ohlcChartData.Last().X;
 
-                    openTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = creationX,
-                        Y = x.price,
-                        Start = true,
-                        BorderColor = "#ffa500",
-                        Data = x,
-                        Type = "price"
-                    });
-                    openTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = lastX,
-                        Y = x.price,
-                        Start = false,
-                        BorderColor = "#ffa500",
-                        Data = x,
-                        Type = "price"
-                    });
-
-                    if (x.liquidation > 0)
-                    {
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
                             X = creationX,
-                            Y = x.liquidation,
+                            Y = x.price,
                             Start = true,
-                            BorderColor = "#ff0000",
+                            BorderColor = "#ffa500",
                             Data = x,
-                            Type = "liquidation"
+                            Type = "price"
                         });
                         openTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
                             X = lastX,
-                            Y = x.liquidation,
+                            Y = x.price,
                             Start = false,
-                            BorderColor = "#ff0000",
+                            BorderColor = "#ffa500",
                             Data = x,
-                            Type = "liquidation"
+                            Type = "price"
                         });
-                    }
 
-                    if (x.stoploss > 0)
-                    {
-                        openTradesChartData.Add(new TradeChartModel
+                        if (x.liquidation > 0)
                         {
-                            Id = x.id,
-                            X = creationX,
-                            Y = x.stoploss,
-                            Start = true,
-                            BorderColor = "#ff0000",
-                            Data = x,
-                            Type = "stoploss"
-                        });
-                        openTradesChartData.Add(new TradeChartModel
-                        {
-                            Id = x.id,
-                            X = lastX,
-                            Y = x.stoploss,
-                            Start = false,
-                            BorderColor = "#ff0000",
-                            Data = x,
-                            Type = "stoploss"
-                        });
-                    }
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = creationX,
+                                Y = x.liquidation,
+                                Start = true,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "liquidation"
+                            });
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.liquidation,
+                                Start = false,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "liquidation"
+                            });
+                        }
 
-                    if (x.takeprofit > 0)
-                    {
-                        openTradesChartData.Add(new TradeChartModel
+                        if (x.stoploss > 0)
                         {
-                            Id = x.id,
-                            X = creationX,
-                            Y = x.takeprofit,
-                            Start = true,
-                            BorderColor = "#00ff00",
-                            Data = x,
-                            Type = "takeprofit"
-                        });
-                        openTradesChartData.Add(new TradeChartModel
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = creationX,
+                                Y = x.stoploss,
+                                Start = true,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "stoploss"
+                            });
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.stoploss,
+                                Start = false,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "stoploss"
+                            });
+                        }
+
+                        if (x.takeprofit > 0)
                         {
-                            Id = x.id,
-                            X = lastX,
-                            Y = x.takeprofit,
-                            Start = false,
-                            BorderColor = "#00ff00",
-                            Data = x,
-                            Type = "takeprofit"
-                        });
-                    }
-                });
-
-                var runningTradesChartData = new List<TradeChartModel>();
-                var runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
-                runningTradesData.Where(x => x.market_filled_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
-                {
-                    var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
-                        .ToList()
-                        .FirstOrDefault()?.X ?? x.market_filled_ts;
-                    var lastX = ohlcChartData.Last().X;
-                    var lastC = ohlcChartData.Last().C;
-
-                    runningTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = marketFilledX,
-                        Y = x.price,
-                        Start = true,
-                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
-                        Data = x,
-                        Type = "price"
-                    });
-                    runningTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = lastX,
-                        Y = lastC,
-                        Start = false,
-                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
-                        Data = x,
-                        Type = "price"
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = creationX,
+                                Y = x.takeprofit,
+                                Start = true,
+                                BorderColor = "#00ff00",
+                                Data = x,
+                                Type = "takeprofit"
+                            });
+                            openTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.takeprofit,
+                                Start = false,
+                                BorderColor = "#00ff00",
+                                Data = x,
+                                Type = "takeprofit"
+                            });
+                        }
                     });
 
-                    if (x.liquidation > 0)
+                    runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
+                    runningTradesData.Where(x => x.market_filled_ts >= ohlcChartData.First().X).ToList().ForEach(x =>
                     {
+                        var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
+                            .ToList()
+                            .FirstOrDefault()?.X ?? x.market_filled_ts;
+                        var lastX = ohlcChartData.Last().X;
+                        var lastC = ohlcChartData.Last().C;
+
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
                             X = marketFilledX,
-                            Y = x.liquidation,
+                            Y = x.price,
                             Start = true,
-                            BorderColor = "#ff0000",
+                            BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
                             Data = x,
-                            Type = "liquidation"
+                            Type = "price"
                         });
                         runningTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
                             X = lastX,
-                            Y = x.liquidation,
+                            Y = lastC,
                             Start = false,
-                            BorderColor = "#ff0000",
+                            BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
                             Data = x,
-                            Type = "liquidation",
+                            Type = "price"
                         });
-                    }
 
-                    if (x.stoploss > 0)
+                        if (x.liquidation > 0)
+                        {
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = marketFilledX,
+                                Y = x.liquidation,
+                                Start = true,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "liquidation"
+                            });
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.liquidation,
+                                Start = false,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "liquidation",
+                            });
+                        }
+
+                        if (x.stoploss > 0)
+                        {
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = marketFilledX,
+                                Y = x.stoploss,
+                                Start = true,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "stoploss"
+                            });
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.stoploss,
+                                Start = false,
+                                BorderColor = "#ff0000",
+                                Data = x,
+                                Type = "stoploss"
+                            });
+                        }
+
+                        if (x.takeprofit > 0)
+                        {
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = marketFilledX,
+                                Y = x.takeprofit,
+                                Start = true,
+                                BorderColor = "#00ff00",
+                                Data = x,
+                                Type = "takeprofit"
+                            });
+                            runningTradesChartData.Add(new TradeChartModel
+                            {
+                                Id = x.id,
+                                X = lastX,
+                                Y = x.takeprofit,
+                                Start = false,
+                                BorderColor = "#00ff00",
+                                Data = x,
+                                Type = "takeprofit"
+                            });
+                        }
+                    });
+
+                    closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
+                    closedTradesData = closedTradesData.Where(x => !x.canceled);
+                    closedTradesData.ToList().ForEach(x =>
                     {
-                        runningTradesChartData.Add(new TradeChartModel
+                        var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
+                            .ToList()
+                            .FirstOrDefault()?.X ?? x.market_filled_ts;
+
+                        var closedX = ohlcChartData.Where(y => y.X >= x.closed_ts)
+                            .ToList()
+                            .FirstOrDefault()?.X ?? x.closed_ts;
+
+                        closedTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
                             X = marketFilledX,
-                            Y = x.stoploss,
+                            Y = x.price,
                             Start = true,
-                            BorderColor = "#ff0000",
+                            BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
                             Data = x,
-                            Type = "stoploss"
+                            Type = "price"
                         });
-                        runningTradesChartData.Add(new TradeChartModel
+                        closedTradesChartData.Add(new TradeChartModel
                         {
                             Id = x.id,
-                            X = lastX,
-                            Y = x.stoploss,
+                            X = closedX,
+                            Y = x.exit_price,
                             Start = false,
-                            BorderColor = "#ff0000",
+                            BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
                             Data = x,
-                            Type = "stoploss"
+                            Type = "price"
                         });
-                    }
-
-                    if (x.takeprofit > 0)
-                    {
-                        runningTradesChartData.Add(new TradeChartModel
-                        {
-                            Id = x.id,
-                            X = marketFilledX,
-                            Y = x.takeprofit,
-                            Start = true,
-                            BorderColor = "#00ff00",
-                            Data = x,
-                            Type = "takeprofit"
-                        });
-                        runningTradesChartData.Add(new TradeChartModel
-                        {
-                            Id = x.id,
-                            X = lastX,
-                            Y = x.takeprofit,
-                            Start = false,
-                            BorderColor = "#00ff00",
-                            Data = x,
-                            Type = "takeprofit"
-                        });
-                    }
-                });
-
-                var closedTradesChartData = new List<TradeChartModel>();
-                var closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
-                closedTradesData = closedTradesData.Where(x => !x.canceled);
-                closedTradesData.ToList().ForEach(x =>
-                {
-                    var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
-                        .ToList()
-                        .FirstOrDefault()?.X ?? x.market_filled_ts;
-
-                    var closedX = ohlcChartData.Where(y => y.X >= x.closed_ts)
-                        .ToList()
-                        .FirstOrDefault()?.X ?? x.closed_ts;
-
-                    closedTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = marketFilledX,
-                        Y = x.price,
-                        Start = true,
-                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
-                        Data = x,
-                        Type = "price"
                     });
-                    closedTradesChartData.Add(new TradeChartModel
-                    {
-                        Id = x.id,
-                        X = closedX,
-                        Y = x.exit_price,
-                        Start = false,
-                        BorderColor = x.pl > 0 ? "#00ff00" : "#ff0000",
-                        Data = x,
-                        Type = "price"
-                    });
-                });
+                }
 
                 return Ok(new
                 {
-                    ohlcChartData,
-
-                    openTradesData,
-                    openTradesChartData,
-
-                    closedTradesData,
-                    closedTradesChartData,
-
-                    runningTradesData,
-                    runningTradesChartData
+                    chartData = new
+                    {
+                        ohlcChartData,
+                        openTradesChartData,
+                        closedTradesChartData,
+                        runningTradesChartData
+                    },
+                    tradesData = new
+                    {
+                        openTradesData,
+                        closedTradesData,
+                        runningTradesData,
+                    },
                 });
-
             }
             catch (Exception ex)
             {
