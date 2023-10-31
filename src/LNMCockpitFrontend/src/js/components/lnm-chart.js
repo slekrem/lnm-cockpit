@@ -161,14 +161,15 @@ export default class LnmChart extends LitElement {
         });
     };
 
-    updateChartData = (data) => {
+    updateChartData = (data, resetZoom) => {
         Object.keys(data).forEach(element => {
-            if (data[element].length <= 0)
+            if (!data[element])
                 return;
             const dataset = this._chart.data.datasets.filter(x => x.id === element)[0];
             dataset.data = data[element];
         });
         this._chart.update();
+        if (resetZoom) this._chart.resetZoom()
     };
 
     updateChartDatasetVis = data => {
