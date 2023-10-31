@@ -6,18 +6,19 @@ import './trades-running-table';
 
 export default class TradesTables extends LitElement {
     static properties = {
+        data: Object,
         _table: String
     };
 
     _renderTradesTable = () => {
         switch (this._table) {
             case "running":
-                return html`<trades-running-table></trades-running-table>`;
+                return html`<trades-running-table .data="${this.data?.runningTradesData}"></trades-running-table>`;
             case "closed":
-                return html`<trades-closed-table></trades-closed-table>`;
+                return html`<trades-closed-table .data="${this.data?.closedTradesData}"></trades-closed-table>`;
             case "open":
             default:
-                return html`<trades-open-table></trades-open-table>`
+                return html`<trades-open-table .data="${this.data?.openTradesData}"></trades-open-table>`
         }
     };
 
