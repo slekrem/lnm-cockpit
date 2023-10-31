@@ -106,7 +106,7 @@ export default class AppView extends LitElement {
         e.preventDefault();
         e.target.setAttribute('disabled', 'true');
         this._ohlcChartView = e.detail;
-        await this._updateData();
+        await this._updateData(true);
         clearInterval(this._intervalId);
         switch (this._ohlcChartView) {
             case '24h1m':
@@ -135,14 +135,14 @@ export default class AppView extends LitElement {
         this.querySelector('chart-time-btn').removeAttribute('disabled');
     };
 
-    _updateData = async () => {
+    _updateData = async (resetZoom) => {
         const response = await fetch(`/api/chart/data?view=${this._ohlcChartView}`);
         if (!response.ok) {
             location.reload();
             return;
         }
         this._data = await response.json();
-        this.querySelector('lnm-chart').updateChartData(this._data.chartData);
+        this.querySelector('lnm-chart').updateChartData(this._data.chartData, resetZoom);
     };
 
     _onTradeVisClick = e => {
