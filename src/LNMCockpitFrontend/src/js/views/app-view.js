@@ -17,12 +17,12 @@ export default class AppView extends LitElement {
     };
 
     _renderTradesTable = () => {
-        if (this.isAuthenticated)
-            return html`
-            <div class="card-body">
-                <trades-tables class="mb-5"></trades-tables>
-            </div>`;
-        return html``;
+        if (!this.isAuthenticated || !this._data?.tradesData)
+            return html``;
+        return html`
+        <div class="card-body">
+            <trades-tables class="mb-5" .data="${this._data?.tradesData}"></trades-tables>
+        </div>`;
     };
 
     createRenderRoot = () => this;
@@ -143,6 +143,7 @@ export default class AppView extends LitElement {
         }
         this._data = await response.json();
         this.querySelector('lnm-chart').updateChartData(this._data.chartData, resetZoom);
+        this.requestUpdate();
     };
 
     _onTradeVisClick = e => {
