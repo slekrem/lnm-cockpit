@@ -171,6 +171,18 @@ export default class LnmChart extends LitElement {
         this._chart.update();
     };
 
+    updateChartDatasetVis = data => {
+        const dataParts = data.split('-');
+        const id = dataParts[0];
+        const shouldHide = dataParts[1].toLowerCase() === 'false';
+
+        this._chart.data.datasets
+            .filter(dataset => dataset.id === id)
+            .forEach(dataset => dataset.hidden = shouldHide);
+
+        this._chart.update();
+    };
+
     _someCodeForToDo = () => {
         const viewCriteria = {
             '24h1m': (dayOfWeek, h, m, s) => [0, 4, 8, 12, 16, 20].includes(h) && m === 0,
