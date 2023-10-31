@@ -105,12 +105,13 @@ export default class LnmChart extends LitElement {
                 datasets: [{
                     id: 'ohlcChartData',
                     label: 'Bitcoin / U.S. Dollar',
-                    data: [] //this._data.ohlcChartData
+                    data: []
                 }, {
+                    id: 'openTradesChartData',
                     type: 'line',
                     label: 'Open',
                     hidden: true,
-                    data: [], //this._data.openTradesChartData,
+                    data: [],
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
@@ -123,10 +124,11 @@ export default class LnmChart extends LitElement {
 
                     }
                 }, {
+                    id: 'runningTradesChartData',
                     type: 'line',
                     label: 'Running',
                     hidden: true,
-                    data: [],//this._data.runningTradesChartData,
+                    data: [],
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
@@ -138,10 +140,11 @@ export default class LnmChart extends LitElement {
                         },
                     }
                 }, {
+                    id: 'closedTradesChartData',
                     type: 'line',
                     label: 'Closed',
                     hidden: true,
-                    data: [], //this._data.closedTradesChartData,
+                    data: [],
                     pointBackgroundColor: 'rgba(0, 0, 0, 0)',
                     pointBorderColor: 'rgba(0, 0, 0, 0)',
                     segment: {
