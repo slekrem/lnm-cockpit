@@ -12,13 +12,13 @@ export default class AppShell extends LitElement {
     render = () => {
         return html`
         <lnmc-navbar .isAuthenticated="${this._isAuthenticated}"></lnmc-navbar>
-        <app-view></app-view>`;
+        <app-view .isAuthenticated="${this._isAuthenticated}"></app-view>`;
     };
 
     firstUpdated = async () => {
         const response = await fetch('/api/auth/is-authenticated');
         const data = await response.json();
-        this._isAuthenticated = !data.isAuthenticated;
+        this._isAuthenticated = data.isAuthenticated;
     };
 }
 
