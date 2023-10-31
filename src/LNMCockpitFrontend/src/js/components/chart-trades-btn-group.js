@@ -9,14 +9,15 @@ export default class ChartTradesBtnGroup extends LitElement {
     createRenderRoot = () => this;
     render = () => html`
         <button class="btn btn-sm btn-link" @click="${this._onOpenBtnClick}">
-            <i class="bi ${this._showOpenTrades ? 'bi-record' : 'bi-record-fill'}"></i>
+            <i class="bi ${this._showOpenTrades ? 'bi-record-fill' : 'bi-record'}"></i>
         </button >
         <button class="btn btn-sm btn-link" @click="${this._onRunningBtnClick}">
-            <i class="bi ${this._showRunningTrades ? 'bi-play' : 'bi-play-fill'}"></i>
+            <i class="bi ${this._showRunningTrades ? 'bi-play-fill' : 'bi-play'}"></i>
         </button>
         <button class="btn btn-sm btn-link" @click="${this._onClosedBtnClick}">
-            <i class="bi ${this._showClosedTrades ? 'bi-stop' : 'bi-stop-fill'}"></i>
-        </button>`;
+            <i class="bi ${this._showClosedTrades ? 'bi-stop-fill' : 'bi-stop'}"></i>
+        </button>
+    `;
 
     _onOpenBtnClick = e => {
         e.preventDefault();
