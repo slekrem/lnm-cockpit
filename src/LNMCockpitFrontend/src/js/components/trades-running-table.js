@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 
 export default class TradesTunningTable extends LitElement {
     properties = {
-        data: Array
+        data: Object
     };
 
     _renderTableRow = (x, i) => {
@@ -79,6 +79,7 @@ export default class TradesTunningTable extends LitElement {
 
     createRenderRoot = () => this;
     render = () => html`
+    ${console.log('asd')}
     <div class="table-responsive mt-3">
         <table class="table table-sm table-striped">
             <tr>
@@ -95,7 +96,7 @@ export default class TradesTunningTable extends LitElement {
                 <th class="text-nowrap">Takeprofit</th>
                 <th class="text-nowrap">PL</th>
             </tr>
-            ${this.data.map(this._renderTableRow)}
+            ${this.data?.tradesData?.runningTradesData?.map(this._renderTableRow)}
         </table>
     </div>
     `;
