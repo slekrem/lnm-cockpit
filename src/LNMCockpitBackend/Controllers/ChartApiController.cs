@@ -80,13 +80,21 @@
                 {
                     var firstOhlcX = ohlcChartData.First().X;
                     openTradesData = await _lnMarketsService.FuturesGetOpenTradesAsync(fromView, to);
-                    openTradesData = openTradesData.Where(x => x.creation_ts >= firstOhlcX);
+                    openTradesData = openTradesData.Where(x =>
+                    {
+                        if (x.creation_ts <= firstOhlcX)
+                            return false;
+                        var creationX = ohlcChartData.FirstOrDefault(y => y.X >= x.creation_ts)?.X ?? -1;
+                        return creationX > 0 && creationX != ohlcChartData.Last().X;
+                    });
                     openTradesData.ToList().ForEach(x =>
                     {
                         var creationX = ohlcChartData.Where(y => y.X >= x.creation_ts)
                             .ToList()
-                            .FirstOrDefault()?.X ?? x.creation_ts;
+                            .FirstOrDefault()?.X ?? -1;
                         var lastX = ohlcChartData.Last().X;
+                        if (creationX <= 0 || creationX == lastX)
+                            return;
 
                         openTradesChartData.Add(new TradeChartModel
                         {
@@ -183,7 +191,13 @@
                     });
 
                     runningTradesData = await _lnMarketsService.FuturesGetRunningTradesAsync(fromView, to);
-                    runningTradesData = runningTradesData.Where(x => x.market_filled_ts >= firstOhlcX);
+                    runningTradesData = runningTradesData.Where(x =>
+                    {
+                        if (x.market_filled_ts <= firstOhlcX)
+                            return false;
+                        var creationX = ohlcChartData.FirstOrDefault(y => y.X >= x.market_filled_ts)?.X ?? -1;
+                        return creationX > 0 && creationX != ohlcChartData.Last().X;
+                    });
                     runningTradesData.ToList().ForEach(x =>
                     {
                         var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
