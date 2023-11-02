@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 
 export default class TradesOpenTable extends LitElement {
     properties = {
-        data: Array
+        data: Object
     };
 
     _renderTableRow = (x, i) => {
@@ -88,7 +88,7 @@ export default class TradesOpenTable extends LitElement {
                 <th class="text-nowrap">Stoploss</th>
                 <th class="text-nowrap">Takeprofit</th>
             </tr>
-            ${this.data.map(this._renderTableRow)}
+            ${this.data?.tradesData?.openTradesData?.map(this._renderTableRow)}
         </table>
     </div>
     `;
