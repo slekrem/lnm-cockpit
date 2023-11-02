@@ -79,7 +79,6 @@ export default class TradesTunningTable extends LitElement {
 
     createRenderRoot = () => this;
     render = () => html`
-    ${console.log('asd')}
     <div class="table-responsive mt-3">
         <table class="table table-sm table-striped">
             <tr>
