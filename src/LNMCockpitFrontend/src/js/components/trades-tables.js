@@ -13,12 +13,12 @@ export default class TradesTables extends LitElement {
     _renderTradesTable = () => {
         switch (this._table) {
             case "running":
-                return html`<trades-running-table .data="${this.data?.runningTradesData}"></trades-running-table>`;
+                return html`<trades-running-table .data="${this.data}"></trades-running-table>`;
             case "closed":
-                return html`<trades-closed-table .data="${this.data?.closedTradesData}"></trades-closed-table>`;
+                return html`<trades-closed-table .data="${this.data}"></trades-closed-table>`;
             case "open":
             default:
-                return html`<trades-open-table .data="${this.data?.openTradesData}"></trades-open-table>`
+                return html`<trades-open-table .data="${this.data}"></trades-open-table>`
         }
     };
 
@@ -37,6 +37,27 @@ export default class TradesTables extends LitElement {
     </ul>
     ${this._renderTradesTable()}
     `;
+
+    requestUpdate = () => {
+        super.requestUpdate();
+        let elementName = '';
+        switch (this._table) {
+            case "running":
+                elementName = 'trades-running-table';
+                break;
+            case "closed":
+                elementName = 'trades-closed-table';
+                break;
+            case "open":
+            default:
+                elementName = 'trades-open-table';
+                break;
+        }
+
+        const element = this.querySelector(elementName);
+        if (element)
+            element.requestUpdate();
+    };
 
     _onTableClick = (e) => {
         e.preventDefault();
