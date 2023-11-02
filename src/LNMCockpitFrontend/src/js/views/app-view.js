@@ -21,7 +21,7 @@ export default class AppView extends LitElement {
             return html``;
         return html`
         <div class="card-body">
-            <trades-tables class="mb-5" .data="${this._data?.tradesData}"></trades-tables>
+            <trades-tables class="mb-5" .data="${this._data}"></trades-tables>
         </div>`;
     };
 
@@ -143,7 +143,11 @@ export default class AppView extends LitElement {
         }
         this._data = await response.json();
         this.querySelector('lnm-chart').updateChartData(this._data.chartData, resetZoom);
-        this.requestUpdate();
+
+        const tradesTables = this.querySelector('trades-tables');
+        if (tradesTables)
+            tradesTables.requestUpdate();
+        this.requestUpdate(); // ich glaube das ist nicht notwendig
     };
 
     _onTradeVisClick = e => {
