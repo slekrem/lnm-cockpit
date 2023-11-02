@@ -20,51 +20,51 @@ export default class TradesOpenTable extends LitElement {
             <td class="text-nowrap">${new Date(x.creation_ts).toLocaleString()}</td>
             <td class="text-nowrap">${hh}:${mm}:${ss}</td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="quantity" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.quantityHide)}
-                </button>
+                </button> -->
                 ${getValue(x.quantityHide, x.quantity)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="side" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.sideHide)}
-                </button>
+                </button> -->
                 ${getValue(x.sideHide, x.side)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="leverage" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.leverageHide)}
-                </button>
+                </button> -->
                 ${getValue(x.leverageHide, x.leverage)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="margin" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.marginHide)}
-                </button>
+                </button> -->
                 ${getValue(x.marginHide, x.margin)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="price" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.priceHide)}
-                </button>
+                </button> -->
                 ${getValue(x.priceHide, x.price)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="liquidation" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.liquidationHide)}
-                </button>
+                </button> -->
                 ${getValue(x.liquidationHide, x.liquidation)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="stoploss" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.stoplossHide)}
-                </button>
+                </button> -->
                 ${getValue(x.stoplossHide, x.stoploss)}
             </td>
             <td class="text-nowrap">
-                <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
+                <!-- <button @click="${this._onHideClick}" data-table="open" data-trade-id="${x.id}" data-name="takeprofit" class="btn btn-sm btn-link">
                     ${getEyeIcon(x.takeprofitHide)}
-                </button>
+                </button> -->
                 ${getValue(x.takeprofitHide, x.takeprofit)}
             </td>
         </tr>
