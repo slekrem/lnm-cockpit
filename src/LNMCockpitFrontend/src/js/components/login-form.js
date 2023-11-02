@@ -1,21 +1,10 @@
-import { html, LitElement } from 'lit';
+import { LitElement, html } from "lit";
 import logo from '../../favicon/logo.png';
 
-export default class LoginView extends LitElement {
-
+export default class LoginForm extends LitElement {
     _renderStyle = () => html`
     <style>
-        html,
-        body {
-            height: 100%;
-        }
-
-        .form-signin {
-            max-width: 350px;
-            padding: 1rem;
-        }
-
-        .form-signin .form-floating:focus-within {
+        .form-floating:focus-within {
             z-index: 2;
         }
 
@@ -39,15 +28,14 @@ export default class LoginView extends LitElement {
     `;
 
     createRenderRoot = () => this;
-    render = () => html`
-    ${this._renderStyle()}
-    <div class="d-flex align-items-center py-4 bg-body-tertiary vh-100">
-        <main class="form-signin w-auto m-auto">
-            <form @submit="${this._onFormSubmit}">
-                <div class="text-center">
-                    <img class="mb-4" src="${logo}" alt="" width="250" height="250">
-                </div>
-                <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
+    render = () => {
+        return html`
+        ${this._renderStyle()}
+        <form @submit="${this._onFormSubmit}">
+            <div class="text-center">
+                <img class="mb-4" src="${logo}" alt="" width="250" height="250">
+            </div>
+            <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
                 <div class="form-floating">
                     <input type="password" class="form-control secret" name="secret" placeholder="Secret" required>
                     <label>Secret</label>
@@ -72,10 +60,9 @@ export default class LoginView extends LitElement {
                         Made with ❤️‍🔥
                     </a>
                 </p>
-            </form>
-        </main>
-    </div>
-    `;
+        </form>
+        `;
+    };
 
     _onFormSubmit = async (e) => {
         e.preventDefault();
@@ -89,4 +76,4 @@ export default class LoginView extends LitElement {
     };
 }
 
-customElements.define('login-view', LoginView);
+customElements.define('login-form', LoginForm);
