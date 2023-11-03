@@ -1,5 +1,6 @@
 import { LitElement, html } from "lit";
 
+import './lnmc-copilot';
 import './trades-open-table';
 import './trades-closed-table';
 import './trades-running-table';
@@ -12,6 +13,8 @@ export default class TradesTables extends LitElement {
 
     _renderTradesTable = () => {
         switch (this._table) {
+            case "copilot":
+                return html`<lnmc-copilot></lnmc-copilot>`;
             case "running":
                 return html`<trades-running-table .data="${this.data}"></trades-running-table>`;
             case "closed":
@@ -25,6 +28,9 @@ export default class TradesTables extends LitElement {
     createRenderRoot = () => this;
     render = () => html`
     <ul class="nav nav-pills flex-column flex-sm-row justify-content-center">
+        <li class="nav-item">
+            <a class="nav-link trades-table" aria-current="page" href="#" data-table="copilot" @click="${this._onTableClick}">Copilot</a>
+        </li>
         <li class="nav-item">
             <a class="nav-link trades-table active" aria-current="page" href="#" data-table="open" @click="${this._onTableClick}">Open Trades</a>
         </li>
