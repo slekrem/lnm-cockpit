@@ -74,6 +74,10 @@ export default class TradesClosedTable extends LitElement {
                 </button> -->
                 ${getValue(x.plHide, x.pl)}
             </td>
+            <td class="text-nowrap">${x.opening_fee}</td>
+            <td class="text-nowrap">${x.sum_carry_fees}</td>
+            <td class="text-nowrap">${x.closing_fee}</td>
+            <td class="text-nowrap">${x.pl - (x.opening_fee + x.sum_carry_fees + x.closing_fee)}</td>
         </tr>
         `;
     };
@@ -95,6 +99,10 @@ export default class TradesClosedTable extends LitElement {
                 <th class="text-nowrap">Stoploss</th>
                 <th class="text-nowrap">Takeprofit</th>
                 <th class="text-nowrap">PL</th>
+                <th class="text-nowrap">Opening fee</th>
+                <th class="text-nowrap">Sum carry fees</th>
+                <th class="text-nowrap">Closing fee</th>
+                <th class="text-nowrap">New PL</th>
             </tr>
             ${this.data?.tradesData?.closedTradesData?.map(this._renderTableRow)}
         </table>
