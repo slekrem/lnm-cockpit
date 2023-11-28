@@ -21,5 +21,13 @@
             var result = await _lnMarketsService.FuturesNewTrade(side, "m", 100);
             return Ok(new { result });
         }
+
+        [HttpPost]
+        [Route("api/copilot/close-trade")]
+        public async Task<IActionResult> CloseTrade(string id)
+        {
+            var result = await _lnMarketsService.FuturesCloseTrade(id);
+            return Ok(new { result });
+        }
     }
 }
