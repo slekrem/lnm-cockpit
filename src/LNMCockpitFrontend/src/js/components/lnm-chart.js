@@ -27,12 +27,45 @@ export default class LnmChart extends LitElement {
             CandlestickElement,
             CandlestickController);
 
-        const scalesPlugin = {
-            id: 'scalesPlugin',
-            beforeDraw: (chart, args, options) => {
-                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
-                //chart.scales.x.ticks = this._chartScalesXTicks;
-                //chart.scales.y.ticks = this._chartScalesYTicks;
+        let crosshair;
+        const hoverCrosshair = {
+            id: 'hoverCrosshair',
+            events: ['mousemove'],
+            beforeDatasetsDraw: (chart, args, plugins) => {
+                if (crosshair) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    crosshair.forEach((line, index) => {
+                        ctx.beginPath();
+                        ctx.moveTo(line.startX, line.startY);
+                        ctx.lineTo(line.endX, line.endY);
+                        ctx.stroke();
+                    });
+                }
+            },
+            afterEvent: (chart, args) => {
+                const { ctx, chartArea: { left, right, top, bottom } } = chart;
+                const xCoor = args.event.x;
+                const yCoor = args.event.y;
+                if (args.inChartArea) {
+                    crosshair = [{
+                        startX: xCoor,
+                        startY: top,
+                        endX: xCoor,
+                        endY: bottom
+                    }, {
+                        startX: left,
+                        startY: yCoor,
+                        endX: right,
+                        endY: yCoor
+                    }];
+                    args.changed = true;
+                } else if (!args.inChartArea && crosshair) {
+                    crosshair = undefined;
+                    args.changed = true;
+                }
+
+                console.log(xCoor, yCoor);
             }
         };
 
@@ -65,7 +98,7 @@ export default class LnmChart extends LitElement {
                     legend: {
                         display: false
                     },
-                    scalesPlugin: {
+                    hoverCrosshair: {
                         topLeft: 'red',
                         topRight: 'blue',
                         bottomRight: 'green',
@@ -157,7 +190,7 @@ export default class LnmChart extends LitElement {
                     }
                 }]
             },
-            plugins: [scalesPlugin]
+            plugins: [hoverCrosshair]
         });
     };
 
