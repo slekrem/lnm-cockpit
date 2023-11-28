@@ -301,7 +301,9 @@
                     });
 
                     closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
-                    closedTradesData = closedTradesData.Where(x => x.market_filled_ts >= firstOhlcX && !x.canceled);
+                    closedTradesData = closedTradesData
+                        .Where(x => x.market_filled_ts >= firstOhlcX && !x.canceled)
+                        .OrderByDescending(x => x.market_filled_ts);
                     closedTradesData.ToList().ForEach(x =>
                     {
                         var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)
