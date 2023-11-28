@@ -16,7 +16,7 @@ export default class LnmChart extends LitElement {
     };
 
     createRenderRoot = () => this;
-    render = () => html`<canvas></canvas>`;
+    render = () => html`<canvas style="cursor:none;"></canvas>`;
 
     firstUpdated = () => {
         Chart.register(
