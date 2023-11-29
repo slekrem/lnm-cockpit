@@ -16,7 +16,15 @@ export default class LnmChart extends LitElement {
     };
 
     createRenderRoot = () => this;
-    render = () => html`<canvas style="cursor:none;"></canvas>`;
+    render = () => html`
+    <div id="chartMenu" class="context-menu" style="display: none; position: absolute;">
+        <div class="card">
+            <div class="card-body">
+                super cool context menu
+            </div>
+        </div>
+    </div>
+    <canvas style="cursor:none;"></canvas>`;
 
     firstUpdated = () => {
         Chart.register(
@@ -30,8 +38,7 @@ export default class LnmChart extends LitElement {
         let crosshair;
         const hoverCrosshair = {
             id: 'hoverCrosshair',
-            events: ['mousemove'],
-            beforeDatasetsDraw: (chart, args, plugins) => {
+            beforeDatasetsDraw: (chart, args) => {
                 if (crosshair) {
                     const { ctx } = chart;
                     ctx.save();
@@ -41,31 +48,51 @@ export default class LnmChart extends LitElement {
                         ctx.lineTo(line.endX, line.endY);
                         ctx.stroke();
                     });
+                    let USDollar = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    });
+
+                    const textX = crosshair[0].startX + 10;
+                    const textY = crosshair[1].startY - 10;
+                    const text = USDollar.format(crosshair[0].price);
+                    const date = new Date(crosshair[0].time).toLocaleString();
+                    ctx.fillText(`${text} | ${date}`, textX, textY);
                 }
             },
             afterEvent: (chart, args) => {
+                const asdX = chart.getElementsAtEventForMode(args.event, 'nearest', { intersect: false, axis: 'x' }, false);
+                const asdY = chart.getElementsAtEventForMode(args.event, 'nearest', { intersect: false, axis: 'y' }, false);
+
+                if (asdX.length && asdY.length) {
+                    const { bottom, end, height } = chart.scales.y;
+                }
                 const { ctx, chartArea: { left, right, top, bottom } } = chart;
                 const xCoor = args.event.x;
                 const yCoor = args.event.y;
+                const asdP = chart.scales.y.getValueForPixel(yCoor);
+                const asdT = chart.scales.x.getValueForPixel(xCoor);
                 if (args.inChartArea) {
                     crosshair = [{
                         startX: xCoor,
                         startY: top,
                         endX: xCoor,
-                        endY: bottom
+                        endY: bottom,
+                        price: asdP,
+                        time: asdT,
                     }, {
                         startX: left,
                         startY: yCoor,
                         endX: right,
-                        endY: yCoor
+                        endY: yCoor,
+                        price: asdP,
+                        time: asdT,
                     }];
                     args.changed = true;
                 } else if (!args.inChartArea && crosshair) {
                     crosshair = undefined;
                     args.changed = true;
                 }
-
-                console.log(xCoor, yCoor);
             }
         };
 
@@ -103,6 +130,9 @@ export default class LnmChart extends LitElement {
                         topRight: 'blue',
                         bottomRight: 'green',
                         bottomLeft: 'yellow',
+                    },
+                    tooltip: {
+                        enabled: false,
                     }
                 },
                 scales: {
@@ -129,10 +159,11 @@ export default class LnmChart extends LitElement {
                             }
                         },
                         ticks: {
-                            display: false,
+                            display: true,
+                            stepSize: 100
                         }
                     }
-                }
+                },
             },
             data: {
                 datasets: [{
@@ -192,6 +223,8 @@ export default class LnmChart extends LitElement {
             },
             plugins: [hoverCrosshair]
         });
+
+        this._chart.canvas.oncontextmenu = this._onContextMenu;
     };
 
     updateChartData = (data, resetZoom) => {
@@ -216,6 +249,26 @@ export default class LnmChart extends LitElement {
 
         this._chart.update();
     };
+
+    _onContextMenu = e => {
+        e.preventDefault();
+        const chartMenu = this.querySelector('#chartMenu');
+        //chartMenu.style.display = 'block';
+        chartMenu.style.left = `${e.layerX}px`;
+        chartMenu.style.top = `${e.layerY}px`;
+
+        const elements = this._chart.getElementsAtEventForMode(e, 'nearest', { intersect: false }/*, false*/);
+        if (elements.length) {
+            switch (elements[0].element.constructor.name) {
+                case 'OhlcElement':
+                    const asd = elements[0].element.$context.parsed;
+                    const { o, h, l, c, x, dateTime } = asd;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
     _someCodeForToDo = () => {
         const viewCriteria = {
