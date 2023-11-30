@@ -12,19 +12,36 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 export default class LnmChart extends LitElement {
     static properties = {
         data: Object,
-        _chart: Object
+        _chart: Object,
+        _chartMenuData: Object,
     };
+
+    _renderChartMenu = () => {
+        let USDollar = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        });
+
+        return html`
+        <div id="chartMenu" class="context-menu" style="display: none; position: absolute;">
+            <div class="card">
+                <div class="card-header">
+                    ${USDollar.format(this._chartMenuData?.price)}
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action disabled">create market order</a>
+                    <a href="#" class="list-group-item list-group-item-action disabled">create limit order</a>
+                </div>
+            </div>
+        </div>
+        `;
+    }
 
     createRenderRoot = () => this;
     render = () => html`
-    <div id="chartMenu" class="context-menu" style="display: none; position: absolute;">
-        <div class="card">
-            <div class="card-body">
-                super cool context menu
-            </div>
-        </div>
-    </div>
-    <canvas style="cursor:none;"></canvas>`;
+    ${this._renderChartMenu()}
+    <canvas style="cursor:none;"></canvas>
+    `;
 
     firstUpdated = () => {
         Chart.register(
@@ -253,11 +270,19 @@ export default class LnmChart extends LitElement {
     _onContextMenu = e => {
         e.preventDefault();
         const chartMenu = this.querySelector('#chartMenu');
-        //chartMenu.style.display = 'block';
-        chartMenu.style.left = `${e.layerX}px`;
-        chartMenu.style.top = `${e.layerY}px`;
+        switch (chartMenu.style.display) {
+            case 'block':
+                chartMenu.style.display = 'none';
+                this._chartMenuData = null;
+                return;
+            default:
+                chartMenu.style.display = 'block';
+                chartMenu.style.left = `${e.layerX - 5}px`;
+                chartMenu.style.top = `${e.layerY - 5}px`;
+                break;
+        }
 
-        const elements = this._chart.getElementsAtEventForMode(e, 'nearest', { intersect: false }/*, false*/);
+        const elements = this._chart.getElementsAtEventForMode(e, 'nearest', { intersect: false } /*, false*/);
         if (elements.length) {
             switch (elements[0].element.constructor.name) {
                 case 'OhlcElement':
@@ -265,10 +290,18 @@ export default class LnmChart extends LitElement {
                     const { o, h, l, c, x, dateTime } = asd;
                     break;
                 default:
+                    console.log(elements[0])
                     break;
             }
         }
-    }
+
+        const price = this._chart.scales.y.getValueForPixel(e.offsetY);
+        const time = this._chart.scales.x.getValueForPixel(e.offsetX);
+        this._chartMenuData = {
+            price,
+            time
+        };
+    };
 
     _someCodeForToDo = () => {
         const viewCriteria = {
