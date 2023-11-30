@@ -12,11 +12,36 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 export default class LnmChart extends LitElement {
     static properties = {
         data: Object,
-        _chart: Object
+        _chart: Object,
+        _chartMenuData: Object,
     };
 
+    _renderChartMenu = () => {
+        let USDollar = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        });
+
+        return html`
+        <div id="chartMenu" class="context-menu" style="display: none; position: absolute;">
+            <div class="card">
+                <div class="card-header">
+                    ${USDollar.format(this._chartMenuData?.price)}
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action disabled">create market order</a>
+                    <a href="#" class="list-group-item list-group-item-action disabled">create limit order</a>
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
     createRenderRoot = () => this;
-    render = () => html`<canvas></canvas>`;
+    render = () => html`
+    ${this._renderChartMenu()}
+    <canvas style="cursor:none;"></canvas>
+    `;
 
     firstUpdated = () => {
         Chart.register(
@@ -27,12 +52,64 @@ export default class LnmChart extends LitElement {
             CandlestickElement,
             CandlestickController);
 
-        const scalesPlugin = {
-            id: 'scalesPlugin',
-            beforeDraw: (chart, args, options) => {
-                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
-                //chart.scales.x.ticks = this._chartScalesXTicks;
-                //chart.scales.y.ticks = this._chartScalesYTicks;
+        let crosshair;
+        const hoverCrosshair = {
+            id: 'hoverCrosshair',
+            beforeDatasetsDraw: (chart, args) => {
+                if (crosshair) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    crosshair.forEach((line, index) => {
+                        ctx.beginPath();
+                        ctx.moveTo(line.startX, line.startY);
+                        ctx.lineTo(line.endX, line.endY);
+                        ctx.stroke();
+                    });
+                    let USDollar = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                    });
+
+                    const textX = crosshair[0].startX + 10;
+                    const textY = crosshair[1].startY - 10;
+                    const text = USDollar.format(crosshair[0].price);
+                    const date = new Date(crosshair[0].time).toLocaleString();
+                    ctx.fillText(`${text} | ${date}`, textX, textY);
+                }
+            },
+            afterEvent: (chart, args) => {
+                const asdX = chart.getElementsAtEventForMode(args.event, 'nearest', { intersect: false, axis: 'x' }, false);
+                const asdY = chart.getElementsAtEventForMode(args.event, 'nearest', { intersect: false, axis: 'y' }, false);
+
+                if (asdX.length && asdY.length) {
+                    const { bottom, end, height } = chart.scales.y;
+                }
+                const { ctx, chartArea: { left, right, top, bottom } } = chart;
+                const xCoor = args.event.x;
+                const yCoor = args.event.y;
+                const asdP = chart.scales.y.getValueForPixel(yCoor);
+                const asdT = chart.scales.x.getValueForPixel(xCoor);
+                if (args.inChartArea) {
+                    crosshair = [{
+                        startX: xCoor,
+                        startY: top,
+                        endX: xCoor,
+                        endY: bottom,
+                        price: asdP,
+                        time: asdT,
+                    }, {
+                        startX: left,
+                        startY: yCoor,
+                        endX: right,
+                        endY: yCoor,
+                        price: asdP,
+                        time: asdT,
+                    }];
+                    args.changed = true;
+                } else if (!args.inChartArea && crosshair) {
+                    crosshair = undefined;
+                    args.changed = true;
+                }
             }
         };
 
@@ -65,11 +142,14 @@ export default class LnmChart extends LitElement {
                     legend: {
                         display: false
                     },
-                    scalesPlugin: {
+                    hoverCrosshair: {
                         topLeft: 'red',
                         topRight: 'blue',
                         bottomRight: 'green',
                         bottomLeft: 'yellow',
+                    },
+                    tooltip: {
+                        enabled: false,
                     }
                 },
                 scales: {
@@ -96,10 +176,11 @@ export default class LnmChart extends LitElement {
                             }
                         },
                         ticks: {
-                            display: false,
+                            display: true,
+                            stepSize: 100
                         }
                     }
-                }
+                },
             },
             data: {
                 datasets: [{
@@ -157,8 +238,10 @@ export default class LnmChart extends LitElement {
                     }
                 }]
             },
-            plugins: [scalesPlugin]
+            plugins: [hoverCrosshair]
         });
+
+        this._chart.canvas.oncontextmenu = this._onContextMenu;
     };
 
     updateChartData = (data, resetZoom) => {
@@ -182,6 +265,42 @@ export default class LnmChart extends LitElement {
             .forEach(dataset => dataset.hidden = shouldHide);
 
         this._chart.update();
+    };
+
+    _onContextMenu = e => {
+        e.preventDefault();
+        const chartMenu = this.querySelector('#chartMenu');
+        switch (chartMenu.style.display) {
+            case 'block':
+                chartMenu.style.display = 'none';
+                this._chartMenuData = null;
+                return;
+            default:
+                chartMenu.style.display = 'block';
+                chartMenu.style.left = `${e.layerX - 5}px`;
+                chartMenu.style.top = `${e.layerY - 5}px`;
+                break;
+        }
+
+        const elements = this._chart.getElementsAtEventForMode(e, 'nearest', { intersect: false } /*, false*/);
+        if (elements.length) {
+            switch (elements[0].element.constructor.name) {
+                case 'OhlcElement':
+                    const asd = elements[0].element.$context.parsed;
+                    const { o, h, l, c, x, dateTime } = asd;
+                    break;
+                default:
+                    console.log(elements[0])
+                    break;
+            }
+        }
+
+        const price = this._chart.scales.y.getValueForPixel(e.offsetY);
+        const time = this._chart.scales.x.getValueForPixel(e.offsetX);
+        this._chartMenuData = {
+            price,
+            time
+        };
     };
 
     _someCodeForToDo = () => {

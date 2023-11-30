@@ -1,6 +1,12 @@
 ﻿namespace LNMCockpit.Services
 {
     using LNMCockpit.Models.LnMarkets;
+    using Microsoft.AspNetCore.DataProtection.KeyManagement;
+    using Microsoft.AspNetCore.DataProtection;
+    using System;
+    using System.Collections.Generic;
+    using System.Net.Http.Headers;
+    using System.Reflection.PortableExecutable;
     using System.Security.Cryptography;
     using System.Text;
 
@@ -61,6 +67,36 @@
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
             var data = await client.GetFromJsonAsync<IEnumerable<FuturesTradeModel>>($"{_lnMarketsEndpoint}{path}?{@params}") ?? new List<FuturesTradeModel>();
             return data.ToList();
+        }
+
+        public async Task<bool> FuturesNewTrade(string side, string type, int leverage)
+        {
+            var method = "POST";
+            var path = "/v2/futures";
+            var @params = $"{{\"side\":\"{side}\",\"type\":\"{type}\",\"leverage\":{leverage},\"quantity\":1}}";
+            var timestamp = GetUtcNowInUnixTimestamp();
+
+            using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
+
+            var content = new StringContent(@params, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{_lnMarketsEndpoint}{path}", content);
+            //var responseContent = await response.Content.ReadAsStringAsync();
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> FuturesCloseTrade(string id)
+        {
+            var method = "DELETE";
+            var path = "/v2/futures";
+            var @params = $"{{\"id\":\"{id}\"}}";
+            var timestamp = GetUtcNowInUnixTimestamp();
+
+            using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
+
+            var content = new StringContent(@params, Encoding.UTF8, "application/json");
+            var response = await client.DeleteAsync($"{_lnMarketsEndpoint}{path}");
+            //var responseContent = await response.Content.ReadAsStringAsync();
+            return response.IsSuccessStatusCode;
         }
 
         private string GetSignature(string payload)

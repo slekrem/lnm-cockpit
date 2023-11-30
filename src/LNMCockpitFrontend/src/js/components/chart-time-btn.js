@@ -1,9 +1,11 @@
 import { LitElement, html } from "lit";
+import { Dropdown } from "bootstrap";
 
 export default class ChartTimeBtn extends LitElement {
     static properties = {
         disabled: Boolean,
-        _activeView: String
+        _activeView: String,
+        _dropdown: Object,
     };
 
     createRenderRoot = () => this;
@@ -15,10 +17,41 @@ export default class ChartTimeBtn extends LitElement {
             <button class="btn btn-link link-underline link-underline-opacity-0 dropdown-toggle"
                 type="button"
                 data-bs-toggle="dropdown"
-                aria-expanded="false">
+                aria-expanded="false"
+                @click="${this._onDropdownBtnClick}">
                 <i class="bi bi-clock"></i>
             </button>
             <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item chart-view ${activeClass('1h1m')} ${disabledClass}"
+                        href="#"
+                        data-view="1h1m"
+                        @click="${this._onChartViewClick}">1h in 1min chart</a>
+                </li>
+                <li>
+                    <a class="dropdown-item chart-view ${activeClass('2h1m')} ${disabledClass}"
+                        href="#"
+                        data-view="2h1m"
+                        @click="${this._onChartViewClick}">2h in 1min chart</a>
+                </li>
+                <li>
+                    <a class="dropdown-item chart-view ${activeClass('3h1m')} ${disabledClass}"
+                        href="#"
+                        data-view="3h1m"
+                        @click="${this._onChartViewClick}">3h in 1min chart</a>
+                </li>
+                <li>
+                    <a class="dropdown-item chart-view ${activeClass('6h1m')} ${disabledClass}"
+                        href="#"
+                        data-view="6h1m"
+                        @click="${this._onChartViewClick}">6h in 1min chart</a>
+                </li>
+                <li>
+                    <a class="dropdown-item chart-view ${activeClass('12h1m')} ${disabledClass}"
+                        href="#"
+                        data-view="12h1m"
+                        @click="${this._onChartViewClick}">12h in 1min chart</a>
+                </li>
                 <li>
                     <a class="dropdown-item chart-view ${activeClass('24h1m')} ${disabledClass}"
                         href="#"
@@ -53,7 +86,15 @@ export default class ChartTimeBtn extends LitElement {
         `;
     };
 
-    firstUpdated = () => this._activeView = '1m8h';
+    firstUpdated = () => {
+        this._activeView = '1m8h';
+        this._dropdown = new Dropdown(this.querySelector('.dropdown-toggle'));
+    };
+
+    _onDropdownBtnClick = (e) => {
+        e.preventDefault();
+        this._dropdown.toggle();
+    };
 
     _onChartViewClick = async (e) => {
         e.preventDefault();

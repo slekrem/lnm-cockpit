@@ -27,6 +27,26 @@
             Func<DateTime, DateTime> GroupByFunc = (x) => throw new Exception();
             switch (view)
             {
+                case "1h1m":
+                    fromView = DateTime.UtcNow.AddHours(-1).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
+                case "2h1m":
+                    fromView = DateTime.UtcNow.AddHours(-2).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
+                case "3h1m":
+                    fromView = DateTime.UtcNow.AddHours(-3).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
+                case "6h1m":
+                    fromView = DateTime.UtcNow.AddHours(-6).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
+                case "12h1m":
+                    fromView = DateTime.UtcNow.AddHours(-12).ToUnixTimeInMilliseconds();
+                    GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
+                    break;
                 case "24h1m":
                     fromView = DateTime.UtcNow.AddDays(-1).ToUnixTimeInMilliseconds();
                     GroupByFunc = (x) => Helper.RoundToNearestNMinutes(x, 1);
@@ -301,7 +321,9 @@
                     });
 
                     closedTradesData = await _lnMarketsService.FuturesGetClosedTradesAsync(fromView, to); // wir müssen nach dem erstellungsdatum suchen....
-                    closedTradesData = closedTradesData.Where(x => x.market_filled_ts >= firstOhlcX && !x.canceled);
+                    closedTradesData = closedTradesData
+                        .Where(x => x.market_filled_ts >= firstOhlcX && !x.canceled)
+                        .OrderByDescending(x => x.market_filled_ts);
                     closedTradesData.ToList().ForEach(x =>
                     {
                         var marketFilledX = ohlcChartData.Where(y => y.X >= x.market_filled_ts)

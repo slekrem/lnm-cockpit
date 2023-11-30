@@ -16,6 +16,7 @@ export default class AppShell extends LitElement {
     };
 
     firstUpdated = async () => {
+        sessionStorage.clear();
         const response = await fetch('/api/auth/is-authenticated');
         const data = await response.json();
         this._isAuthenticated = data.isAuthenticated;

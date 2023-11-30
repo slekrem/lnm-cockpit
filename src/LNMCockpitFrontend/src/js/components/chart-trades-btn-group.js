@@ -1,5 +1,7 @@
 import { LitElement, html } from "lit";
 
+import './lnmc-copilot-modal-btn';
+
 export default class ChartTradesBtnGroup extends LitElement {
     static properties = {
         _showOpenTrades: Boolean,
@@ -17,6 +19,8 @@ export default class ChartTradesBtnGroup extends LitElement {
         <button class="btn btn-sm btn-link" @click="${this._onClosedBtnClick}">
             <i class="bi ${this._showClosedTrades ? 'bi-stop-fill' : 'bi-stop'}"></i>
         </button>
+        |
+        <lnmc-copilot-modal-btn></lnmc-copilot-modal-btn>
     `;
 
     _onOpenBtnClick = e => {

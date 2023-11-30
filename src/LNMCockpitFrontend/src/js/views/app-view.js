@@ -29,6 +29,21 @@ export default class AppView extends LitElement {
     render = () => {
         let text = '';
         switch (this._ohlcChartView) {
+            case '1h1m':
+                text = '1h at 1 minute intervals';
+                break;
+            case '2h1m':
+                text = '2h at 1 minute intervals';
+                break;
+            case '3h1m':
+                text = '3h at 1 minute intervals';
+                break;
+            case '6h1m':
+                text = '6h at 1 minute intervals';
+                break;
+            case '12h1m':
+                text = '12h at 1 minute intervals';
+                break;
             case '24h1m':
                 text = '1 day at 1 minute intervals';
                 break;
@@ -109,6 +124,11 @@ export default class AppView extends LitElement {
         await this._updateData(true);
         clearInterval(this._intervalId);
         switch (this._ohlcChartView) {
+            case '1h1m':
+            case '2h1m':
+            case '3h1m':
+            case '6h1m':
+            case '12h1m':
             case '24h1m':
                 this._intervalId = setInterval(this._intervalDataFetch, 60000);
                 break;
@@ -152,7 +172,14 @@ export default class AppView extends LitElement {
 
     _onTradeVisClick = e => {
         e.preventDefault();
-        this.querySelector('lnm-chart').updateChartDatasetVis(e.detail);
+        switch (e.detail) {
+            case 'copilot':
+                console.log('asd');
+                break;
+            default:
+                this.querySelector('lnm-chart').updateChartDatasetVis(e.detail);
+                break;
+        }
     };
 }
 
