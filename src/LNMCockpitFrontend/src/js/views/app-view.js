@@ -172,7 +172,14 @@ export default class AppView extends LitElement {
 
     _onTradeVisClick = e => {
         e.preventDefault();
-        this.querySelector('lnm-chart').updateChartDatasetVis(e.detail);
+        switch (e.detail) {
+            case 'copilot':
+                console.log('asd');
+                break;
+            default:
+                this.querySelector('lnm-chart').updateChartDatasetVis(e.detail);
+                break;
+        }
     };
 }
 
