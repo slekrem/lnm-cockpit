@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit';
 
 export default class LnmcCopilot extends LitElement {
     static properties = {
+        data: Object,
         _side: String,
         _interval: String,
         _intervalId: Number,
@@ -17,13 +18,13 @@ export default class LnmcCopilot extends LitElement {
             <div class="mb-3">
                 <label class="form-label">Side</label>
                 <input class="form-control" name="side"
-                    value="b"
+                    value="${this._side}"
                     ?disabled="${disabled}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">Interval</label>
                 <input type="time" class="form-control" name="interval"
-                    value="00:01"
+                    value="${this._interval}"
                     ?disabled="${disabled}" required>
             </div>
             <button type="submit" class="btn btn-primary">
@@ -47,6 +48,11 @@ export default class LnmcCopilot extends LitElement {
         sessionStorage.setItem('lnmc-copilot._intervalId', this._intervalId);
     };
 
+    requestUpdate = () => {
+        super.requestUpdate();
+        console.log('req update');
+    };
+
     _onFormSubmit = (e) => {
         e.preventDefault();
 
@@ -55,7 +61,6 @@ export default class LnmcCopilot extends LitElement {
             case 'Stop':
                 clearInterval(this._intervalId);
                 this._intervalId = -1;
-                //submitBtn.innerText = 'Start';
                 break;
             case 'Start':
             default:
@@ -65,16 +70,44 @@ export default class LnmcCopilot extends LitElement {
                 const timeValue = this._interval;
                 const [hours, minutes] = timeValue.split(':').map(Number);
                 const minutesInMilliseconds = (hours * 60 + minutes) * 60 * 1000;
-                this._intervalId = setInterval(async () => {
-                    const response = await fetch('/api/copilot/create-market-order', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    console.log(result);
-                }, minutesInMilliseconds);
-                //submitBtn.innerText = 'Stop';
+                this._intervalId = setInterval(this.__copilotInterval, minutesInMilliseconds);
+
+                sessionStorage.setItem('lnmc-copilot._side', this._side);
+                sessionStorage.setItem('lnmc-copilot._interval', this._interval);
+                sessionStorage.setItem('lnmc-copilot._intervalId', this._intervalId);
                 break;
+        }
+    };
+
+    __copilotInterval = async () => {
+        const appView = document.querySelector('app-view');
+
+        appView._data.tradesData.runningTradesData.forEach(x => {
+            if ((x.pl - (x.opening_fee * 2 + x.sum_carry_fees))) {
+                console.log('pls close')
+            }
+        });
+
+
+
+
+        console.log(appView._data);
+        const runningTradesLength = appView._data.tradesData.runningTradesData.length;
+        const runningTradesInLossLength = appView._data.tradesData.runningTradesData.filter(x => x.pl <= 0).length;
+        appView._data.tradesData.runningTradesData
+            .filter(x => (x.pl - (x.opening_fee * 2 + x.sum_carry_fees)) > 10)
+            .map(x => console.log(x.pl - (x.opening_fee * 2 + x.sum_carry_fees)));
+        console.log('l:', runningTradesLength);
+        console.log('l2:', runningTradesInLossLength);
+        if (runningTradesLength < 10 && runningTradesInLossLength === 0) {
+            const formData = new FormData();
+            formData.set('side', sessionStorage.getItem('lnmc-copilot._side'));
+            const response = await fetch('/api/copilot/create-market-order', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            console.log(result);
         }
     };
 }
