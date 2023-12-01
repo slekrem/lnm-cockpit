@@ -167,6 +167,11 @@ export default class AppView extends LitElement {
         const tradesTables = this.querySelector('trades-tables');
         if (tradesTables)
             tradesTables.requestUpdate();
+
+        const lnmcBrainBtn = this.querySelector('lnmc-brain-btn');
+        if (lnmcBrainBtn)
+            lnmcBrainBtn.setData(this._data);
+
         this.requestUpdate(); // ich glaube das ist nicht notwendig
     };
 
