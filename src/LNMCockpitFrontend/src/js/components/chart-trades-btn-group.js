@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 
 import './lnmc-copilot-modal-btn';
+import './lnmc-brain-btn';
 
 export default class ChartTradesBtnGroup extends LitElement {
     static properties = {
@@ -21,6 +22,7 @@ export default class ChartTradesBtnGroup extends LitElement {
         </button>
         |
         <lnmc-copilot-modal-btn></lnmc-copilot-modal-btn>
+        <lnmc-brain-btn></lnmc-brain-btn>
     `;
 
     _onOpenBtnClick = e => {
