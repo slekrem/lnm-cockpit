@@ -40,6 +40,18 @@ export default class LnmcNavbar extends LitElement {
         `;
     }
 
+    firstUpdated = () => {
+        const myOffcanvas = this.querySelector('.offcanvas');
+        myOffcanvas.addEventListener('shown.bs.offcanvas', event => {
+            let fade = document.getElementsByClassName('offcanvas-backdrop fade show')
+            for (let i = 0; i < fade.length; i++) {
+                while (fade.length > 1) {
+                    fade[i].remove()
+                }
+            }
+        });
+    };
+
     _onLogOutClick = async (e) => {
         e.preventDefault();
         await fetch('/api/auth/logout', { method: 'POST' });
