@@ -1,12 +1,8 @@
 ﻿namespace LNMCockpit.Services
 {
     using LNMCockpit.Models.LnMarkets;
-    using Microsoft.AspNetCore.DataProtection.KeyManagement;
-    using Microsoft.AspNetCore.DataProtection;
     using System;
     using System.Collections.Generic;
-    using System.Net.Http.Headers;
-    using System.Reflection.PortableExecutable;
     using System.Security.Cryptography;
     using System.Text;
 
