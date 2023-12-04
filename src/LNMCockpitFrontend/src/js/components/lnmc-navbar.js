@@ -8,7 +8,11 @@ export default class LnmcNavbar extends LitElement {
     _renderOffcanvasBody = () => {
         if (!this.isAuthenticated)
             return html`<login-form class="w-100"></login-form>`;
-        return html`<button class="btn btn-danger w-100" @click="${this._onLogOutClick}">Log out</button>
+        return html`
+        <div class="d-flex flex-column mb-3 w-100">
+            <button class="btn btn-primary m-2" @click="${this._onMyCopilotClick}">My Copilot</button>
+            <button class="btn btn-danger m-2" @click="${this._onLogOutClick}">Log out</button>
+        </div>
         `;
     }
 
@@ -56,6 +60,11 @@ export default class LnmcNavbar extends LitElement {
         e.preventDefault();
         await fetch('/api/auth/logout', { method: 'POST' });
         location.reload();
+    };
+
+    _onMyCopilotClick = e => {
+        e.preventDefault();
+        this.dispatchEvent(new CustomEvent('my-copilot-click'));
     };
 }
 
