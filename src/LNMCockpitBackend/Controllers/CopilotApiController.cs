@@ -1,5 +1,6 @@
 ﻿namespace LNMCockpit.Controllers
 {
+    using LNMCockpit.Models.Chart;
     using LNMCockpit.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,27 @@
         {
             var result = await _lnMarketsService.FuturesCloseTrade(id);
             return Ok(new { result });
+        }
+
+        [Route("api/copilot/test")]
+        [HttpGet]
+        public async Task<IActionResult> Test()
+        {
+            var from = DateTime.UtcNow.AddDays(-31).ToUnixTimeInMilliseconds();
+            var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
+
+            var history = await _lnMarketsService.FuturesGetPriceHistoryAsync(from, to, 30000);
+            var groupedHistory = history.GroupBy(x => Helper.RoundToNearestNMinutes(x.DateTime, 1)).ToList();
+            var ohlcData = new List<OhlcChartModel>();
+            groupedHistory.ForEach(x => ohlcData.Add(new OhlcChartModel(x.Key)
+            {
+                O = x.First().Value,
+                H = x.Max(y => y.Value),
+                L = x.Min(y => y.Value),
+                C = x.Last().Value
+            }));
+
+            return Ok(ohlcData);
         }
     }
 }
