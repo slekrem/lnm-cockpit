@@ -22,7 +22,7 @@ export default class MyCopilotView extends LitElement {
         `;
     };
 
-    firstUpdated = async () => {
+    _2_firstUpdated = async () => {
         const scaleDown = (step, lowest, highest) => {
             return {
                 ...step,
@@ -63,12 +63,12 @@ export default class MyCopilotView extends LitElement {
                 if (first.c === 0 && last.c >= 0.5 && maxFutureH <= lastScaledUp.c) {
                     testRanges.push({
                         input: scaledRange.map(x => x.c),
-                        output: [1, 0]
+                        output: [1, 0] // short
                     });
                 } else if (first.c === 1 && last.c <= 0.5 && minFutureL >= lastScaledUp.c) {
                     testRanges.push({
                         input: scaledRange.map(x => x.c),
-                        output: [0, 1]
+                        output: [0, 1] // long
                     });
                 }
             }
@@ -160,7 +160,7 @@ export default class MyCopilotView extends LitElement {
         await fetchData();
     }
 
-    _firstUpdated = async () => {
+    _1_firstUpdated = async () => {
         const timer = ms => new Promise(res => setTimeout(res, ms));
         const scaleDown = (step, lowest, highest) => {
             return {
@@ -345,7 +345,7 @@ export default class MyCopilotView extends LitElement {
         console.log(trades.map(x => x.pl).filter(x => x).reduce((x, y) => x + y, 0), output);
     };
 
-    __firstUpdated = async () => {
+    _0_firstUpdated = async () => {
         Chart.register(...registerables);
 
         const scaleDown = (step, lowest, highest) => {
