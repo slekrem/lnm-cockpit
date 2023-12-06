@@ -22,6 +22,144 @@ export default class MyCopilotView extends LitElement {
         `;
     };
 
+    firstUpdated = async () => {
+        const scaleDown = (step, lowest, highest) => {
+            return {
+                ...step,
+                o: (step.o - lowest) / (highest - lowest),
+                h: (step.h - lowest) / (highest - lowest),
+                l: (step.l - lowest) / (highest - lowest),
+                c: (step.c - lowest) / (highest - lowest),
+                x: step.x,
+            };
+        };
+        const scaleUp = (step, lowest, highest) => {
+            return {
+                o: step.o * (highest - lowest) + lowest,
+                h: step.h * (highest - lowest) + lowest,
+                l: step.l * (highest - lowest) + lowest,
+                c: step.c * (highest - lowest) + lowest,
+                x: step.x,
+            };
+        };
+
+        let response = await fetch('/api/copilot/test');
+        let data = await response.json();
+        let processedData = [];
+        let testRanges = [];
+        for (let i = 0; i < data.length; ++i) {
+            processedData.push(data[i]);
+            const range = processedData.slice(-60);
+            if (range.length == 60) {
+                const maxRange = Math.max(...range.map(x => x.c));
+                const minRange = Math.min(...range.map(x => x.c));
+                const scaledRange = range.map(x => scaleDown(x, minRange, maxRange));
+                const first = scaledRange[0];
+                const last = scaledRange[scaledRange.length - 1];
+                const lastScaledUp = scaleUp(last, minRange, maxRange);
+                const futureData = data.filter(x => x.x > lastScaledUp.x).slice(0, 60);
+                const maxFutureH = Math.max(...futureData.map(x => x.h));
+                const minFutureL = Math.min(...futureData.map(x => x.l));
+                if (first.c === 0 && last.c >= 0.5 && maxFutureH <= lastScaledUp.c) {
+                    testRanges.push({
+                        input: scaledRange.map(x => x.c),
+                        output: [1, 0]
+                    });
+                } else if (first.c === 1 && last.c <= 0.5 && minFutureL >= lastScaledUp.c) {
+                    testRanges.push({
+                        input: scaledRange.map(x => x.c),
+                        output: [0, 1]
+                    });
+                }
+            }
+        }
+        console.log('testRanges', testRanges);
+        const network = new brain.NeuralNetwork({
+            inputSize: 60,
+            inputRange: 60,
+            hiddenLayers: [60, 30, 20],
+            outputSize: 2,
+        });
+        const stats = await network.trainAsync(testRanges, {
+            log: x => console.log(x)
+        });
+        console.log('traning is done...', stats);
+
+        Chart.register(...registerables);
+        const ctx = this.querySelector('canvas');
+        this._chart = new Chart(ctx, {
+            type: 'line',
+            options: {
+                // plugins: {
+                //     title: { display: false },
+                //     subtitle: { display: false },
+                //     legend: { display: false },
+                //     tooltip: { enabled: false, }
+                // },
+                // scales: {
+                //     x: { display: false },
+                //     y: { display: false, beginAtZero: true }
+                // },
+            },
+            data: {
+                datasets: [{
+                    data: [],
+                    borderWidth: 0,
+                    backgroundColor: 'black',
+                }]
+            },
+        });
+
+
+        const fetchData = async () => {
+            response = await fetch('/api/copilot/test');
+            data = await response.json();
+            processedData = [];
+            const signals = [];
+            let output;
+            for (let i = 0; i < data.length; ++i) {
+                processedData.push(data[i]);
+                const range = processedData.slice(-60);
+                if (range.length == 60) {
+                    const maxRange = Math.max(...range.map(x => x.c));
+                    const minRange = Math.min(...range.map(x => x.c));
+                    const scaledRange = range.map(x => scaleDown(x, minRange, maxRange)).map(x => x.c);
+                    output = network.run(scaledRange);
+                    if (output[0] >= 0.9 && signals[signals.length - 1]?.s !== 's') {
+                        signals.push({ s: 's', c: data[i].c })
+                    } else if (output[1] >= 0.9 && signals[signals.length - 1]?.s !== 'b') {
+                        signals.push({ s: 'b', c: data[i].c })
+                    }
+                    this._chart.config.data.labels = scaledRange.map((x, i) => i);
+                    this._chart.config.data.datasets[0].data = range.map(x => scaleDown(x, minRange, maxRange)).map(x => { return { x: x.x, y: x.c }; });
+                    // console.log(this._chart.config.data.datasets[0].data);
+                }
+            }
+
+            // this._chart.config.data.datasets[0].data = processedData.slice(-60).map(x => { return { x: x.x, y: x.c }; });
+            // console.log(this._chart.config.data.datasets[0].data)
+            this._chart.update();
+
+
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = '';
+            if (output[0] >= 0.9) {
+                console.log('SHORT');
+                msg.text = 'SHORT';
+                window.speechSynthesis.speak(msg);
+            } else if (output[1] >= 0.9) {
+                console.log('LONG');
+                msg.text = 'LONG';
+                window.speechSynthesis.speak(msg);
+            } else {
+                console.log('WAIT', `SHORT: ${output[0]} LONG: ${output[1]}`);
+            }
+        };
+
+        const intervalId = setInterval(fetchData, 60000);
+        await fetchData();
+    }
+
     _firstUpdated = async () => {
         const timer = ms => new Promise(res => setTimeout(res, ms));
         const scaleDown = (step, lowest, highest) => {
@@ -207,7 +345,7 @@ export default class MyCopilotView extends LitElement {
         console.log(trades.map(x => x.pl).filter(x => x).reduce((x, y) => x + y, 0), output);
     };
 
-    firstUpdated = async () => {
+    __firstUpdated = async () => {
         Chart.register(...registerables);
 
         const scaleDown = (step, lowest, highest) => {
