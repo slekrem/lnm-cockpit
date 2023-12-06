@@ -22,6 +22,191 @@ export default class MyCopilotView extends LitElement {
         `;
     };
 
+    _firstUpdated = async () => {
+        const timer = ms => new Promise(res => setTimeout(res, ms));
+        const scaleDown = (step, lowest, highest) => {
+            return {
+                ...step,
+                o: (step.o - lowest) / (highest - lowest),
+                h: (step.h - lowest) / (highest - lowest),
+                l: (step.l - lowest) / (highest - lowest),
+                c: (step.c - lowest) / (highest - lowest),
+                x: step.x,
+            };
+        };
+        const scaleUp = (step, lowest, highest) => {
+            return {
+                c: step.c * (highest - lowest) + lowest,
+                x: step.x,
+            };
+        };
+
+        let response = await fetch('/api/copilot/test');
+        let data = await response.json();
+        let processedData = [];
+        let testRanges = [];
+        for (let i = 0; i < data.length; ++i) {
+            processedData.push(data[i]);
+            const range = processedData.slice(-60);
+            if (range.length == 60) {
+                const maxRange = Math.max(...range.map(x => x.c));
+                const minRange = Math.min(...range.map(x => x.c));
+                const scaledRange = range.map(x => scaleDown(x, minRange, maxRange));
+                const first = scaledRange[0];
+                const last = scaledRange[scaledRange.length - 25];
+                if (first.c === 0 && last.c === 1) {
+                    let testRange = processedData.filter(x => x.x < last.x).slice(-120);
+                    if (testRange.length === 120) {
+                        testRange = testRange.map((x, trI) => {
+                            return {
+                                ...x,
+                                output: {
+                                    openLong: trI < range.length ? trI / range.length : 0.1,
+                                    closeLong: trI / testRange.length,
+                                }
+                            };
+                        });
+                        testRanges.push(testRange);
+                    }
+                }
+            }
+        }
+
+        const testData = [];
+        for (let i = 0; i < testRanges.length; ++i) {
+            for (let j = 0; j < testRanges[i].length; ++j) {
+                const testFrame = testRanges[i][j];
+                const range = processedData.filter(x => x.x <= testFrame.x).slice(-60);
+                if (range.length === 60) {
+                    const maxRange = Math.max(...range.map(x => x.c));
+                    const minRange = Math.min(...range.map(x => x.c));
+                    testData.push({
+                        input: Object.assign({}, range.map(x => scaleDown(x, minRange, maxRange)).map(x => x.c)),
+                        output: testFrame.output
+                    });
+                }
+            }
+        }
+
+        const networkType = 'NeuralNetwork';
+        const inputSize = 60;
+        const outputSize = 2;
+        const size = [inputSize, 60, 30, 60, outputSize]; // 24, 23, 22, // 60, 30, 15, 5
+        const networkConfig = {
+            inputSize: size[0],
+            inputRange: size[0],
+            hiddenLayers: size.slice(1, size.length - 1),
+            outputSize: size[size.length - 1],
+        };
+        const networkTypes = {
+            NeuralNetwork: (config) => {
+                return new brain.NeuralNetwork(config);
+            },
+            RNN: (config) => {
+                return new brain.recurrent.RNN(config);
+            },
+            RNNTimeStep: (config) => {
+                return new brain.recurrent.RNNTimeStep(config);
+            },
+            FeedForward: (config) => {
+                // constructor shim
+                const { input, feedForward, target } = brain.layer;
+                return new brain.FeedForward({
+                    inputLayer: () => input({ height: config.inputSize }),
+                    hiddenLayers: config.hiddenLayers.map((l) => (inputLayer) =>
+                        feedForward({ height: l }, inputLayer)
+                    ),
+                    outputLayer: (inputLayer) =>
+                        target({ height: config.outputSize }, inputLayer),
+                });
+            },
+            Recurrent: (config) => {
+                // constructor shim
+                const { input, RNN, output } = brain.layer;
+                return new brain.Recurrent({
+                    inputLayer: () => input({ height: config.inputSize }),
+                    hiddenLayers: config.hiddenLayers.map((layerHeight) => {
+                        return (inputLayer, recurrentInput) => {
+                            return new RNN(
+                                { height: layerHeight },
+                                inputLayer,
+                                recurrentInput
+                            );
+                        };
+                    }),
+                    outputLayer: (inputLayer) =>
+                        output({ height: config.outputSize }, inputLayer),
+                });
+            },
+        };
+        const network = networkTypes[networkType](networkConfig);
+
+        const stats = network.train(testData.slice(-500), {
+            // learningRate: 0.005,
+            // errorThresh: 0.02,
+            //log: (stats) => console.log('train log')
+            // Defaults values --> expected validation
+            iterations: 20000, // the maximum times to iterate the training data --> number greater than 0
+            errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
+            log: false, // true to use console.log, when a function is supplied it is used --> Either true or a function
+            logPeriod: 10, // iterations between logging out --> number greater than 0
+            learningRate: 0.3, // scales with delta to effect training rate --> number between 0 and 1
+            momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
+            //callback: null, // a periodic call back that can be triggered while training --> null or function
+            callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
+            //timeout: number, // the max number of milliseconds to train for --> number greater than 0. Default --> Infinity
+        });
+        console.log(stats);
+
+        response = await fetch('/api/copilot/test');
+        data = await response.json();
+        processedData = [];
+        let signals = [];
+        let output;
+        for (let i = 0; i < data.length; ++i) {
+            processedData.push(data[i]);
+            const range = processedData.slice(-60);
+            if (range.length === 60) {
+                const minRange = Math.min(...range.map(x => x.c));
+                const maxRange = Math.max(...range.map(x => x.c));
+                const input = Object.assign({}, range.map(x => scaleDown(x, minRange, maxRange)).map(x => x.c));
+                output = network.run(input);
+                if (output.openLong > 0.9 || output.closeLong > 0.9)
+                    signals.push({
+                        ...output,
+                        time: new Date(data[i].x).toLocaleString(),
+                        c: data[i].c
+                    });
+            }
+        }
+
+        let trades = [];
+        for (let i = 0; i < signals.length; ++i) {
+            let signal = signals[i];
+
+            // open new pos
+            if (signal.openLong > 0.9 && signal.closeLong < 0.9) {
+                let last = trades.slice(-1)[0];
+                // check last post
+                if (last?.openLong < 0.9 && last?.closeLong > 0.9) {
+                    trades.push(signal);
+                } else if (!last) { trades.push(signal) }
+
+            } else if (signal.openLong < 0.9 && signal.closeLong > 0.9) {
+                let last = trades.slice(-1)[0];
+                if (last?.openLong > 0.9 && last?.closeLong < 0.9) {
+                    trades[trades.length - 1].pl = signal.c - last.c;
+                    trades.push(signal);
+                }
+            }
+        }
+
+
+        // console.table(signals);
+        console.table(trades);
+        console.log(trades.map(x => x.pl).filter(x => x).reduce((x, y) => x + y, 0), output);
+    };
+
     firstUpdated = async () => {
         Chart.register(...registerables);
 
@@ -228,7 +413,7 @@ export default class MyCopilotView extends LitElement {
                 this._chart.config.data.datasets[0].data = scaledData.map(x => { return { x: x.x, y: x.c }; });
                 this._chart.config.data.datasets[1].data = scaledData.map((x, i) => { return { x: x.x, y: x.c }; });
 
-                await timer(5);
+                await timer(25);
                 this._chart.update();
             }
         }
@@ -389,17 +574,16 @@ export default class MyCopilotView extends LitElement {
                                 entryTime: data[i].x
                             };
                         } else if (output.short > 0.96) {
-
-                            // trade = {
-                            //     side: 's',
-                            //     entryPrice: data[i].c,
-                            //     entryTime: data[i].x
-                            // };
+                            trade = {
+                                side: 's',
+                                entryPrice: data[i].c,
+                                entryTime: data[i].x
+                            };
                         }
                     }
 
 
-                    await timer(5);
+                    //await timer(5);
                     this._chart.update();
                 }
             }
@@ -415,9 +599,9 @@ export default class MyCopilotView extends LitElement {
             console.log(sum, output, trade);
         };
 
-        const intervalId = setInterval(fetchData, 60000 * 2);
+        const intervalId = setInterval(fetchData, 60000);
         await fetchData();
-    }
+    };
 }
 
 customElements.define('my-copilot-view', MyCopilotView);
