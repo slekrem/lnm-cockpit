@@ -252,7 +252,7 @@ export default class LnmChart extends LitElement {
             dataset.data = data[element];
         });
         this._chart.update();
-        if (resetZoom) this._chart.resetZoom()
+        if (resetZoom) this._chart.resetZoom();
     };
 
     updateChartDatasetVis = data => {
