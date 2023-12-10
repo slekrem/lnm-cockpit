@@ -267,7 +267,7 @@ export default class MyCopilotView extends LitElement {
                         });
                     }
                     else {
-                        const steps = 6;
+                        const steps = 4;
                         const length = window / steps;
                         let start = 0;
                         const geteilteTeile = [];
@@ -281,7 +281,7 @@ export default class MyCopilotView extends LitElement {
                             const close = teil.slice(-1)[0];
                             const high = teil.sort((a, b) => a.h - b.h);
                             const low = teil.sort((a, b) => a.l - b.l);
-                            
+
                             // console.log(high.slice(-1)[0].h);
                             // console.log(low[0].l);
 
