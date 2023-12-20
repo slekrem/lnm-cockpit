@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 src/LNMCockpitFrontend/.parcel-cache
 src/LNMCockpitFrontend/package-lock.json
+src/LNMCockpitBackend/wwwroot
