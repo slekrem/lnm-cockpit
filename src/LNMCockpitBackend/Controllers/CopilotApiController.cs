@@ -38,7 +38,7 @@
             var from = DateTime.UtcNow.AddDays(-31).ToUnixTimeInMilliseconds();
             var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
 
-            var history = await _lnMarketsService.FuturesGetPriceHistoryAsync(from, to, 30000);
+            var history = await _lnMarketsService.FuturesGetPriceHistoryAsync(from, to, 70000);
             var groupedHistory = history.GroupBy(x => Helper.RoundToNearestNMinutes(x.DateTime, 1)).ToList();
             var ohlcData = new List<OhlcChartModel>();
             groupedHistory.ForEach(x => ohlcData.Add(new OhlcChartModel(x.Key)
