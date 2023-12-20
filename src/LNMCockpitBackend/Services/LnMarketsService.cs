@@ -16,7 +16,7 @@
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<IEnumerable<FuturesPriceHistoryModel>> FuturesGetPriceHistoryAsync(long from, long to, int limit = int.MaxValue)
+        public async Task<IEnumerable<FuturesPriceHistoryModel>> FuturesGetPriceHistoryAsync(long from, long to, int limit = 1000)
         {
             var method = "GET";
             var path = "/v2/futures/history/price";
@@ -84,14 +84,15 @@
         {
             var method = "DELETE";
             var path = "/v2/futures";
-            var @params = $"{{\"id\":\"{id}\"}}";
+            //var @params = $"{{\"id\":\"{id}\"}}";
+            var @params = $"id={id}";
             var timestamp = GetUtcNowInUnixTimestamp();
 
             using var client = GetLnMarketsHttpClient(GetSignature($"{timestamp}{method}{path}{@params}"), timestamp);
 
             var content = new StringContent(@params, Encoding.UTF8, "application/json");
-            var response = await client.DeleteAsync($"{_lnMarketsEndpoint}{path}");
-            //var responseContent = await response.Content.ReadAsStringAsync();
+            var response = await client.DeleteAsync($"{_lnMarketsEndpoint}{path}?{@params}");
+            var responseContent = await response.Content.ReadAsStringAsync();
             return response.IsSuccessStatusCode;
         }
 
