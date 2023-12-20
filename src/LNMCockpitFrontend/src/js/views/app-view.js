@@ -93,7 +93,7 @@ export default class AppView extends LitElement {
 
     firstUpdated = async () => {
         this.querySelector('chart-time-btn')?.setAttribute('disabled', 'true');
-        this._ohlcChartView = '1m8h';
+        this._ohlcChartView = '24h1m';
         await this._updateData();
         this.querySelector('chart-time-btn').removeAttribute('disabled');
         this._intervalId = setInterval(this._intervalDataFetch, 2880000);
