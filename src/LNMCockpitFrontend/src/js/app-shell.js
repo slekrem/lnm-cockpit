@@ -2,6 +2,7 @@ import { html, LitElement } from 'lit';
 
 import './views/app-view';
 import './views/my-copilot-view';
+import './views/playground-view';
 import './components/lnmc-navbar';
 
 export default class AppShell extends LitElement {
@@ -12,6 +13,8 @@ export default class AppShell extends LitElement {
 
     _renderView = () => {
         switch (this._view) {
+            case 'playground':
+                return html`<playground-view></playground-view>`;
             case 'my-copilot':
                 return html`<my-copilot-view></my-copilot-view>`;
             case 'app':
@@ -34,7 +37,7 @@ export default class AppShell extends LitElement {
         const response = await fetch('/api/auth/is-authenticated');
         const data = await response.json();
         this._isAuthenticated = data.isAuthenticated;
-        this._view = 'my-copilot';
+        this._view = 'playground';
     };
 
     _onMyCopilotClick = e => {
