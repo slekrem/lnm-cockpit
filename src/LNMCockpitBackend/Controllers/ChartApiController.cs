@@ -22,6 +22,30 @@
         [Route("api/chart/data")]
         public async Task<IActionResult> ChartData(string view = "1m8h")
         {
+            using var c = new HttpClient();
+
+            var someCoolData = await c.GetFromJsonAsync<IEnumerable<LnPriceModel>>($"https://api.lnmarkets.com/v2/futures/history/price?limit=1000");
+
+            var to = someCoolData.Last().time;
+            while (someCoolData?.Count() == 1000)
+            {
+                someCoolData = await c.GetFromJsonAsync<IEnumerable<LnPriceModel>>($"https://api.lnmarkets.com/v2/futures/history/price?limit=1000&to={to}");
+                to = someCoolData.Last().time;
+
+                DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(to / 1000).DateTime;
+
+
+                Console.WriteLine(dateTime.ToString("dd.MM.yyyy HH:mm"));
+                Thread.Sleep(1000);
+            }
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [Route("api/chart/data-old")]
+        public async Task<IActionResult> ChartDataOld(string view = "1m8h")
+        {
             long fromView;
             var to = DateTime.UtcNow.ToUnixTimeInMilliseconds();
             Func<DateTime, DateTime> GroupByFunc = (x) => throw new Exception();
@@ -380,5 +404,14 @@
                 return BadRequest(new { ex.Message });
             }
         }
+    }
+
+    // "time":1703298223614,"value":43649},
+
+    public class LnPriceModel
+    {
+        public long time { get; set; }
+
+        public decimal value { get; set; }
     }
 }
