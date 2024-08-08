@@ -399,3 +399,4 @@ FodyWeavers.xsd
 src/LNMCockpitFrontend/.parcel-cache
 src/LNMCockpitFrontend/package-lock.json
 src/LNMCockpitBackend/appsettings.Development.json
+/src/LNMCockpitBackend/wwwroot
