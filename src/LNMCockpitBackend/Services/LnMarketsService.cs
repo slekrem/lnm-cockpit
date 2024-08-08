@@ -20,7 +20,7 @@
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<IEnumerable<FuturesPriceHistoryModel>> FuturesGetPriceHistoryAsync(long from, long to, int limit = int.MaxValue)
+        public async Task<IEnumerable<FuturesPriceHistoryModel>> FuturesGetPriceHistoryAsync(long from, long to, int limit = 1000)
         {
             var method = "GET";
             var path = "/v2/futures/history/price";
@@ -33,7 +33,7 @@
             return data;
         }
 
-        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetOpenTradesAsync(long from, long to, int limit = int.MaxValue)
+        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetOpenTradesAsync(long from, long to, int limit = 1000)
         {
             var method = "GET";
             var path = "/v2/futures";
@@ -45,7 +45,7 @@
             return data.ToList();
         }
 
-        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetClosedTradesAsync(long from, long to, int limit = int.MaxValue)
+        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetClosedTradesAsync(long from, long to, int limit = 1000)
         {
             var method = "GET";
             var path = "/v2/futures";
@@ -57,7 +57,7 @@
             return data.ToList();
         }
 
-        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetRunningTradesAsync(long from, long to, int limit = int.MaxValue)
+        public async Task<IEnumerable<FuturesTradeModel>> FuturesGetRunningTradesAsync(long from, long to, int limit = 1000)
         {
             var method = "GET";
             var path = "/v2/futures";
