@@ -14,7 +14,7 @@ builder.Services
     {
         x.Cookie.Name = ".lnmc.auth";
         x.Cookie.HttpOnly = true;
-        x.Cookie.MaxAge = TimeSpan.FromDays(1);
+        x.Cookie.MaxAge = TimeSpan.FromDays(365);
         x.Cookie.SameSite = SameSiteMode.Strict;
     });
 
